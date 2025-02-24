@@ -19,6 +19,7 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -36,16 +37,19 @@ import com.ctre.phoenix6.hardware.TalonFX;
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
  * periodic methods (other than the scheduler calls).  Instead, the structure of the robot
- * (including subsystems, commands, and button mappings) should be declared here.
+ *(including subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
   // The robot's subsystems
-  private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-
-  private final TalonFX m_elevatorController = new TalonFX(ModuleConstants.kElevatorCanId);
-  private final Encoder m_elevatorEncoder;
-
+  private final DriveSubsystem m_robotDrive;
   private final ElevatorSubsystem m_elevatorSubsystem;
+  private final ClimberSubsystem m_climberSubsystem;
+
+  // Motor controllers and encoders
+  private final TalonFX m_elevatorController;
+  private final Encoder m_elevatorEncoder;
+  private final TalonFX m_climberController;
+  private final Encoder m_climberEncoder;
 
   // The driver's controller
   CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
@@ -55,8 +59,13 @@ public class RobotContainer {
    */
   public RobotContainer() {
     // Configure the button bindings
+    this.m_robotDrive = new DriveSubsystem();
     this.m_elevatorEncoder = new Encoder(0, 1);
     this.m_elevatorSubsystem = new ElevatorSubsystem(m_elevatorEncoder);
+    this.m_elevatorController = new TalonFX(ModuleConstants.kElevatorCanId);
+    this.m_climberEncoder = new Encoder(2, 3);
+    this.m_climberSubsystem = new ClimberSubsystem(m_climberEncoder);
+    this.m_climberController = new TalonFX(13);
 
     configureButtonBindings();
 
@@ -100,7 +109,9 @@ public class RobotContainer {
     m_driverController.x().onTrue(new InstantCommand(() -> {
         m_elevatorEncoder.reset();
     }));
-    m_driverController.leftBumper().onTrue(m_elevatorSubsystem.moveElevatorTo(m_elevatorController, 2500));
+    m_driverController.leftTrigger().onTrue(m_elevatorSubsystem.moveElevatorTo(m_elevatorController, 2500));
+    m_driverController.leftBumper().whileTrue(m_climberSubsystem.moveIn(m_climberController));
+    m_driverController.rightBumper().whileTrue(m_climberSubsystem.moveOut(m_climberController));
   }
 
   /**
