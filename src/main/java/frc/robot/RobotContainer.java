@@ -69,6 +69,7 @@ public class RobotContainer {
 
     configureButtonBindings();
 
+    // Display the height of the elevator on the shuffleboard
     Shuffleboard.getTab("Subsystems").addNumber(
         "Elevator Height", 
         m_elevatorEncoder::get
@@ -104,12 +105,12 @@ public class RobotContainer {
     m_driverController.b().onTrue(new InstantCommand(() -> {
         m_elevatorController.setControl(new CoastOut());
     }));
-    m_driverController.a().whileTrue(m_elevatorSubsystem.moveElevator(m_elevatorController, 0.2));
+    m_driverController.a().whileTrue(m_elevatorSubsystem.moveElevator(m_elevatorController, 0.2)); // Elevator bindings, change later
     m_driverController.y().whileTrue(m_elevatorSubsystem.moveElevator(m_elevatorController, -0.2));
     m_driverController.x().onTrue(new InstantCommand(() -> {
         m_elevatorEncoder.reset();
     }));
-    m_driverController.leftTrigger().onTrue(m_elevatorSubsystem.moveElevatorTo(m_elevatorController, 2500));
+    m_driverController.leftTrigger().onTrue(m_elevatorSubsystem.moveElevatorTo(m_elevatorController, 2500, 0.1)); // Random number, change later
     m_driverController.leftBumper().whileTrue(m_climberSubsystem.moveIn(m_climberController));
     m_driverController.rightBumper().whileTrue(m_climberSubsystem.moveOut(m_climberController));
   }
