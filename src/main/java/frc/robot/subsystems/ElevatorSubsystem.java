@@ -11,6 +11,8 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
+import frc.robot.util.ElevatorEncoderBoolean;
 
 public class ElevatorSubsystem extends SubsystemBase {
 
@@ -41,16 +43,13 @@ public class ElevatorSubsystem extends SubsystemBase {
   public Command moveElevatorTo(TalonFX talon, int height) {
     // 555 is about 1 inch
     return startEnd(() -> {
+      talon.setControl(new CoastOut());
       if (height > elevatorEncoder.get()) {
         talon.set(-0.1);
-        while (elevatorEncoder.get() >= height) {
-          System.out.println(elevatorEncoder.get());
-        }
+        new WaitUntilCommand(new ElevatorEncoderBoolean(height, elevatorEncoder, true)::get);
       } else {
         talon.set(0.1);
-        while (elevatorEncoder.get() < height) {
-          System.out.println(elevatorEncoder.get());
-        }
+        new WaitUntilCommand(new ElevatorEncoderBoolean(height, elevatorEncoder, false)::get);
       }
     }, () -> {
       talon.set(0);
