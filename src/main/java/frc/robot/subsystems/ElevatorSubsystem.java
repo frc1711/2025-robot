@@ -41,7 +41,7 @@ public class ElevatorSubsystem extends SubsystemBase {
    * This will make the elevator motor move to a certain height
    * @param talon The motor controller
    * @param height The target height of the elevator (555 = ~1 inch)
-   * @param speed The speed to get to the target height
+   * @param speed The speed to get to the target height (0.0-1.0)
    */
   public Command moveElevatorTo(TalonFX talon, int height, int speed) {
     // 555 is about 1 inch
