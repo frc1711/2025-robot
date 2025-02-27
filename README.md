@@ -1,8 +1,11 @@
-# MAXSwerve Java Template v2025.1
+# FRC1711 2025 Robot - SCYLLA
+
+
+## MAXSwerve Java Template v2025.1
 
 See [the online changelog](https://github.com/REVrobotics/MAXSwerve-Java-Template/blob/main/CHANGELOG.md) for information about updates to the template that may have been released since you created your project.
 
-## Description
+### Description
 
 A template project for an FRC swerve drivetrain that uses REV MAXSwerve Modules.
 
@@ -10,12 +13,12 @@ Note that this is meant to be used with a drivetrain composed of four MAXSwerve 
 
 To get started, make sure you have calibrated the zero offsets for the absolute encoders in the Hardware Client using the `Absolute Encoder` tab under the associated turning SPARK MAX devices.
 
-## Prerequisites
+### Prerequisites
 
 * SPARK MAX Firmware v25.0.0
 * REVLib v2025.0.0
 
-## Configuration
+### Configuration
 
 It is possible that this project will not work for your robot right out of the box. Various things like the CAN IDs, PIDF gains, chassis configuration, etc. must be determined for your own robot!
 

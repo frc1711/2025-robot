@@ -18,7 +18,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   private final Encoder elevatorEncoder;
 
-  /** Creates a new ExampleSubsystem. */
+  /** Creates a new ExampleSubsystem.*/
   public ElevatorSubsystem(Encoder encoder) {
     this.elevatorEncoder = encoder;
   }
@@ -31,29 +31,34 @@ public class ElevatorSubsystem extends SubsystemBase {
   public Command moveElevator(TalonFX talon, double speed) {
     return startEnd(
         () -> {
-          talon.setControl(new CoastOut());
-          talon.set(speed);
+          talon.setControl(new CoastOut()); // Sets Motor to coast
+          talon.set(speed); // Sets to desired speed
         },
         () -> {
-            talon.stopMotor();
+            talon.stopMotor(); // Stops motor
             talon.setControl(new StaticBrake());
         });
   }
-
-  public Command moveElevatorTo(TalonFX talon, int height) {
+ /**
+   * This will make the elevator motor move to a certain height
+   * @param talon The motor controller
+   * @param height The target height of the elevator (555 = ~1 inch)
+   * @param speed The speed to get to the target height (0.0-1.0)
+   */
+  public Command moveElevatorTo(TalonFX talon, int height, int speed) {
     // 555 is about 1 inch
     return startEnd(() -> {
       talon.setControl(new CoastOut());
       if (height > elevatorEncoder.get()) {
-        talon.set(-0.1);
+        talon.set(-(speed)); // Motor to go up
         new WaitUntilCommand(new ElevatorEncoderBoolean(height, elevatorEncoder, true)::get);
       } else {
-        talon.set(0.1);
+        talon.set(speed); // Sets motor to go down
         new WaitUntilCommand(new ElevatorEncoderBoolean(height, elevatorEncoder, false)::get);
       }
     }, () -> {
-      talon.set(0);
-      talon.setControl(new StaticBrake());
+      talon.set(0); // Stops the talon
+      talon.setControl(new StaticBrake()); // Sets motor control to static brake
     });
     
   }
