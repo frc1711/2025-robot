@@ -24,8 +24,6 @@ public class Elevator extends SubsystemBase {
 	
 	protected final TalonFX motorController;
 	
-//	protected final Encoder encoder;
-	
 	protected final MotionMagicVoltage request;
 	
 	protected final VoltageOut sysIdControl = new VoltageOut(0);
@@ -37,21 +35,12 @@ public class Elevator extends SubsystemBase {
 	public Elevator() {
 		
 		this.motorController = new TalonFX(CANDevice.ELEVATOR_MOTOR_CONTROLLER.id);
-//		this.encoder = new Encoder(0, 1);
 		this.request = new MotionMagicVoltage(0);
 		this.commands = new Commands();
 		this.triggers = new Triggers();
 		
 		this.motorController.getConfigurator().apply(Elevator.getMotorConfig());
 		this.request.Slot = 0;
-		
-//		BaseStatusSignal.setUpdateFrequencyForAll(250,
-//			this.motorController.getPosition(),
-//			this.motorController.getVelocity(),
-//			this.motorController.getMotorVoltage()
-//		);
-		
-//		this.motorController.optimizeBusUtilization();
 		
 		SmartDashboard.putData(this.commands.setCurrentPositionAsZero());
 		
@@ -174,13 +163,6 @@ public class Elevator extends SubsystemBase {
 			),
 			new SysIdRoutine.Mechanism(
 				(Voltage volts) -> this.motorController.setControl(sysIdControl.withOutput(volts.in(Volts))),
-//				(log) -> {
-//					log.motor("drivemotor")
-//						.voltage(this.motorController.getMotorVoltage().getValue())
-//						.current(this.motorController.getStatorCurrent().getValue())
-//						.linearPosition(this.getStage2TravelDistance())
-//						.linearVelocity(this.getStage2TravelVelocity());
-//				},
 				null,
 				this
 			)
