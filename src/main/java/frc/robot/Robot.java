@@ -5,11 +5,13 @@
 package frc.robot;
 
 import au.grapplerobotics.CanBridge;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.configuration.DoublePreference;
+import frc.robot.configuration.ReefScoringMode;
 import frc.robot.controlschemes.TestingTeleoperativeControlsScheme;
 import org.littletonrobotics.urcl.URCL;
 
@@ -22,6 +24,8 @@ import org.littletonrobotics.urcl.URCL;
 public class Robot extends TimedRobot {
   
   protected RobotContainer robotContainer;
+  
+  protected Command autonCommand;
   
   public Robot() {
     
@@ -38,10 +42,17 @@ public class Robot extends TimedRobot {
     
     DoublePreference.init();
     
+    CameraServer.startAutomaticCapture();
+    
   }
 
   @Override
-  public void robotInit() {}
+  public void robotInit() {
+    
+    Auton.initializeShuffleboardSelector();
+    ReefScoringMode.setMode(ReefScoringMode.DEFAULT);
+    
+  }
 
   @Override
   public void robotPeriodic() {
@@ -57,13 +68,19 @@ public class Robot extends TimedRobot {
   public void disabledPeriodic() {}
 
   @Override
-  public void autonomousInit() {}
+  public void autonomousInit() {
+    
+    this.autonCommand = Auton.runSelectedAuton(this.robotContainer);
+    
+  }
   
   @Override
   public void autonomousPeriodic() {}
 
   @Override
   public void teleopInit() {
+    
+    if (this.autonCommand != null) this.autonCommand.cancel();
     
     this.robotContainer.configureTeleoperativeControls();
     

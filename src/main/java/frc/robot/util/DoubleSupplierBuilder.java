@@ -1,5 +1,6 @@
 package frc.robot.util;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
@@ -121,6 +122,25 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 		return new DoubleSupplierBuilder(() ->
 			this.supplier.getAsDouble() * scaling
 		);
+		
+	}
+	
+	public DoubleSupplierBuilder withMaximumSlewRate(double limit) {
+		
+		return new DoubleSupplierBuilder(new DoubleSupplier() {
+			
+			SlewRateLimiter limiter = new SlewRateLimiter(limit);
+			
+			@Override
+			public double getAsDouble() {
+				
+				return this.limiter.calculate(
+					DoubleSupplierBuilder.this.getAsDouble()
+				);
+				
+			}
+			
+		});
 		
 	}
 	

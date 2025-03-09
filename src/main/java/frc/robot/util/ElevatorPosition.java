@@ -1,7 +1,6 @@
 package frc.robot.util;
 
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Dimensionless;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.configuration.RobotDimensions;
 
@@ -23,6 +22,12 @@ public class ElevatorPosition {
 	
 	public static final ElevatorPosition RESTING = MINIMUM;
 	
+	public static final ElevatorPosition L2_ALGAE_REMOVAL =
+		ElevatorPosition.fromUpperMailboxHeight(Inches.of(39));
+	
+	public static final ElevatorPosition L3_ALGAE_REMOVAL =
+		ElevatorPosition.fromUpperMailboxHeight(Inches.of(55));
+	
 	public static final ElevatorPosition L1_SCORING = RESTING;
 	
 	public static final ElevatorPosition L1_LOADING =
@@ -39,6 +44,9 @@ public class ElevatorPosition {
 	
 	public static final ElevatorPosition L4_SCORING =
 		ElevatorPosition.fromUpperMailboxHeight(Inches.of(75));
+	
+	public static final ElevatorPosition L4_DISTANT_SCORING =
+		ElevatorPosition.fromUpperMailboxHeight(Inches.of(80));
 	
 	public static final ElevatorPosition L4_TIP =
 		ElevatorPosition.fromUpperMailboxHeight(Inches.of(81));

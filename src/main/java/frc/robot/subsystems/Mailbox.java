@@ -75,6 +75,15 @@ public class Mailbox extends SubsystemBase {
 			
 		}
 		
+		public Command stickOutTongue() {
+			
+			return Mailbox.this.startEnd(
+				() -> this.feed(0.25).withTimeout(0.25),
+				() -> this.feed(-0.25).withTimeout(0.25)
+			);
+			
+		}
+		
 	}
 	
 }

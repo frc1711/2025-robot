@@ -7,13 +7,13 @@ package frc.robot.util;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.*;
 import com.revrobotics.spark.config.ClosedLoopConfig;
-import com.revrobotics.spark.config.MAXMotionConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -51,7 +51,9 @@ public class SwerveModule extends SubsystemBase {
 	
 	protected final SparkClosedLoopController driveController;
 	
-	protected Angle steerSetpoint;
+	protected Angle steerAngleSetpoint;
+	
+	protected LinearVelocity driveVelocitySetpoint;
 	
 	/**
 	 * Initializes a new SwerveModule with the given motor controllers and
@@ -81,7 +83,8 @@ public class SwerveModule extends SubsystemBase {
 		this.steerController = this.steerMotorController.getClosedLoopController();
 		this.driveController = this.driveMotorController.getClosedLoopController();
 		
-		this.steerSetpoint = Degrees.of(0);
+		this.steerAngleSetpoint = Degrees.of(0);
+		this.driveVelocitySetpoint = InchesPerSecond.of(0);
 		
 		this.driveEncoder.setPosition(0);
 		this.config.steerEncoderOffset.useValue(degrees -> {
@@ -189,15 +192,17 @@ public class SwerveModule extends SubsystemBase {
 			.positionConversionFactor(conversionFactor)
 			.velocityConversionFactor(conversionFactor / 60.0);
 		
-		double velocityFeedforward = 1 / (
-			(94.6 * RobotDimensions.SWERVE_WHEEL_CIRCUMFERENCE.in(Inches)) /
-				RobotDimensions.SWERVE_DRIVE_MOTOR_REDUCTION
-		);
+		AngularVelocity vortexFreeSpeed = Rotations.per(Minute).of(6784);
+		double driveWheelFreeSpeedRPS = (
+			vortexFreeSpeed.in(RotationsPerSecond) *
+				RobotDimensions.SWERVE_WHEEL_CIRCUMFERENCE.in(Inches)
+		) / RobotDimensions.SWERVE_DRIVE_MOTOR_REDUCTION;
+		double velocityFeedforward = 1 / driveWheelFreeSpeedRPS;
 		
 		config.closedLoop
 			.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
-			.pid(0.005, 0, 0)
-//			.velocityFF(velocityFeedforward)
+			.pid(0.01, 0, 0)
+			.velocityFF(velocityFeedforward + 0.002)
 			.outputRange(-1, 1);
 		
 		return config;
@@ -213,7 +218,7 @@ public class SwerveModule extends SubsystemBase {
 	public SwerveModulePosition getPosition() {
 		
 		return new SwerveModulePosition(
-			driveEncoder.getPosition(),
+			Inches.of(driveEncoder.getPosition()),
 			new Rotation2d(this.getSteeringHeading())
 		);
 		
@@ -276,7 +281,7 @@ public class SwerveModule extends SubsystemBase {
 	
 	public Angle getSteeringHeadingSetpoint() {
 		
-		return this.steerSetpoint;
+		return this.steerAngleSetpoint;
 		
 	}
 	
@@ -306,30 +311,34 @@ public class SwerveModule extends SubsystemBase {
 		
 	}
 	
-	public void updateModuleState(SwerveModuleState desiredState) {
+	public LinearVelocity getVelocitySetpoint() {
 		
-		SwerveModuleState newState = desiredState;
-
+		return this.driveVelocitySetpoint;
+		
+	}
+	
+	public void updateModuleState(SwerveModuleState newState) {
+		
 		Rotation2d currentSteeringHeading =
 			new Rotation2d(this.getSteeringHeading());
 
-		newState = SwerveModuleState.optimize(newState, currentSteeringHeading);
+		newState.optimize(currentSteeringHeading);
 		
 		// Perform cosine speed compensation.
-		// Read more here: https://docs.wpilib.org/en/stable/docs/software/kinematics-and-odometry/swerve-drive-kinematics.html#cosine-compensation
-//		newState.speedMetersPerSecond *=
-//			newState.angle.minus(currentSteeringHeading).getCos();
+		newState.speedMetersPerSecond *=
+			newState.angle.minus(currentSteeringHeading).getCos();
 		
-		LinearVelocity desiredVelocity =
+		this.steerAngleSetpoint = newState.angle.getMeasure();
+		this.driveVelocitySetpoint =
 			MetersPerSecond.of(newState.speedMetersPerSecond);
 
 		this.steerController.setReference(
-			newState.angle.getDegrees(),
+			this.steerAngleSetpoint.in(Degrees),
 			SparkBase.ControlType.kPosition
 		);
 		
 		this.driveController.setReference(
-			desiredVelocity.in(InchesPerSecond),
+			this.driveVelocitySetpoint.in(InchesPerSecond),
 			SparkBase.ControlType.kVelocity
 		);
 		
@@ -346,6 +355,46 @@ public class SwerveModule extends SubsystemBase {
 				null,
 				this
 			)
+		);
+		
+	}
+	
+	public void addSendableFields(SendableBuilder builder, String moduleName) {
+		
+		builder.addDoubleProperty(
+			moduleName + " Angle",
+			() -> this.getSteeringHeading().in(Degrees),
+			null
+		);
+		
+		builder.addDoubleProperty(
+			moduleName + " Angle Setpoint",
+			() -> this.getSteeringHeadingSetpoint().in(Degrees),
+			null
+		);
+		
+		builder.addDoubleProperty(
+			moduleName + " Velocity",
+			() -> this.getVelocity().in(MetersPerSecond),
+			null
+		);
+		
+		builder.addDoubleProperty(
+			moduleName + " Velocity (inches per second)",
+			() -> this.getVelocity().in(InchesPerSecond),
+			null
+		);
+		
+		builder.addDoubleProperty(
+			moduleName + " Velocity Setpoint (inches per second)",
+			() -> this.getVelocitySetpoint().in(InchesPerSecond),
+			null
+		);
+		
+		builder.addDoubleProperty(
+			moduleName + " Velocity Error (inches per second)",
+			() -> this.getVelocity().minus(this.getVelocitySetpoint()).in(InchesPerSecond),
+			null
 		);
 		
 	}

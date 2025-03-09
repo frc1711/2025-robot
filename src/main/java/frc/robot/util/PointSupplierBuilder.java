@@ -1,5 +1,6 @@
 package frc.robot.util;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
@@ -170,6 +171,26 @@ public class PointSupplierBuilder implements Supplier<Point> {
 				original.y * scaling
 			);
 			
+		});
+		
+	}
+	
+	public PointSupplierBuilder withMaximumSlewRate(double limit) {
+		
+		return new PointSupplierBuilder(new Supplier<Point>() {
+			SlewRateLimiter xLimiter = new SlewRateLimiter(limit);
+			SlewRateLimiter yLimiter = new SlewRateLimiter(limit);
+			@Override
+			public Point get() {
+				
+				Point original = PointSupplierBuilder.this.get();
+				
+				return new Point(
+					this.xLimiter.calculate(original.x),
+					this.yLimiter.calculate(original.y)
+				);
+				
+			}
 		});
 		
 	}

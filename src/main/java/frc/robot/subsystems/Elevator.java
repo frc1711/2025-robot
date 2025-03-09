@@ -152,24 +152,6 @@ public class Elevator extends SubsystemBase {
 		
 	}
 	
-	public SysIdRoutine generateSysIdRoutine() {
-		
-		return new SysIdRoutine(
-			new SysIdRoutine.Config(
-				Volts.per(Second).of(0.75),
-				Volts.of(3),
-				Seconds.of(3.5),
-				(state) -> SignalLogger.writeString("state", state.toString())
-			),
-			new SysIdRoutine.Mechanism(
-				(Voltage volts) -> this.motorController.setControl(sysIdControl.withOutput(volts.in(Volts))),
-				null,
-				this
-			)
-		);
-		
-	}
-	
 	public class Commands {
 		
 		public Command simpleMove(double speed) {
@@ -212,7 +194,8 @@ public class Elevator extends SubsystemBase {
 			
 			return edu.wpi.first.wpilibj2.command.Commands.runOnce(
 				Elevator.this::setCurrentPositionAsZero
-			).withName("Elevator: Set Current Position as Zero");
+			).withName("Elevator: Set Current Position as Zero")
+			.ignoringDisable(true);
 			
 		}
 		
@@ -244,21 +227,9 @@ public class Elevator extends SubsystemBase {
 						Elevator.this.motorController.stopMotor();
 						Elevator.this.setCurrentPositionAsZero();
 					},
-					() -> Elevator.this.motorController.getTorqueCurrent().getValue().lt(Amps.of(-5)),
+					() -> Elevator.this.motorController.getTorqueCurrent().getValue().lt(Amps.of(-10)),
 					Elevator.this
 				));
-			
-		}
-		
-		public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-			
-			return Elevator.this.generateSysIdRoutine().quasistatic(direction);
-			
-		}
-		
-		public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-			
-			return Elevator.this.generateSysIdRoutine().dynamic(direction);
 			
 		}
 		

@@ -15,8 +15,14 @@ public class StandardTeleoperativeControlsScheme implements ControlsScheme {
 		(new ControlsSchemeBuilder(robotContainer))
 			.configureDefaultRobotCommands()
 			.useControllerJoysticksForDriving(controller1)
+			.useDPadForRobotRelativeDriving(controller1)
+			.useStartToResetFieldHeading(controller1)
 			.useABXYToScoreCoral(controller2)
-			.useBumpersToClimb(controller2);
+			.usePOVButtonsToSwitchReefScoringModes(controller2)
+			.useTriggersToRemoveAlgae(controller2)
+			.useBumpersToClimb(controller2)
+			.useBackButtonToUnclimb(controller2)
+			.useStartButtonToCalibrateElevator(controller2);
 		
 	}
 	

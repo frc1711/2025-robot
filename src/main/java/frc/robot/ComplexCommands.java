@@ -1,9 +1,13 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.configuration.ReefBranch;
+import frc.robot.configuration.ReefLevel;
+import frc.robot.configuration.StatusLightsPattern;
 import frc.robot.util.ElevatorPosition;
+
+import java.util.Map;
 
 public class ComplexCommands {
 	
@@ -23,6 +27,7 @@ public class ComplexCommands {
 			.or(this.robot.intake.triggers.isCoralInLowerIntake());
 	
 		return Commands.waitUntil(mailboxIsInPlace.and(coralInIntake))
+			.andThen(this.robot.lights.commands.raptorsGreen())
 			.andThen(this.robot.intake.commands.feed())
 			.onlyWhile(mailboxIsInPlace.and(coralInIntake));
 	
@@ -50,14 +55,15 @@ public class ComplexCommands {
 		Command shoot = this.robot.mailbox.commands.feed().withTimeout(0.5);
 		
 		return moveElevatorToPosition
-			.withDeadline(waitForElevatorToMoveToPosition.andThen(shoot));
+			.withDeadline(waitForElevatorToMoveToPosition.andThen(shoot))
+			.finallyDo(() -> this.robot.lights.set(StatusLightsPattern.SOLID_COLORS_WHITE));
 		
 	}
 	
 	public Command unloadMailbox() {
 		
 		return this.robot.mailbox.commands.unfeed()
-			.alongWith(this.robot.intake.commands.unfeed());
+			.alongWith(this.robot.intake.commands.feed(-0.5));
 		
 	}
 	
@@ -72,6 +78,20 @@ public class ComplexCommands {
 		
 		return this.robot.mailbox.commands.feed()
 			.alongWith(this.robot.intake.commands.feed());
+		
+	}
+	
+	public Command autoScoreOnReef(ReefLevel level, ReefBranch branch) {
+		
+		return this.robot.swerve.commands.goToNearestReefPosition(branch).alongWith(
+			this.robot.swerve.commands.waitUntilAtNearestReefPosition(branch)
+				.andThen(new SelectCommand<ReefLevel>(Map.ofEntries(
+					Map.entry(ReefLevel.L1_TROUGH, this.scoreOnL1()),
+					Map.entry(ReefLevel.L2, this.scoreOnL2()),
+					Map.entry(ReefLevel.L3, this.scoreOnL3()),
+					Map.entry(ReefLevel.L4, this.scoreOnL4())
+				), () -> level))
+		);
 		
 	}
 	
@@ -115,6 +135,19 @@ public class ComplexCommands {
 				.alongWith(this.robot.mailbox.commands.feed())
 				.until(this.robot.elevator.triggers.isAtPosition(ElevatorPosition.L4_TIP))
 		);
+		
+	}
+	
+	public Command scoreOnL4Distant() {
+		
+		return this.simpleScore(ElevatorPosition.L4_DISTANT_SCORING);
+		
+	}
+	
+	public Command removeAlgaeAtLevel(ElevatorPosition position) {
+		
+		return this.robot.elevator.commands.goTo(position)
+			.alongWith(this.robot.mailbox.commands.feed(0.25).withTimeout(0.25));
 		
 	}
 	

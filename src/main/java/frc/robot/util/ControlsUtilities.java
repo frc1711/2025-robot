@@ -1,5 +1,15 @@
 package frc.robot.util;
 
+import edu.wpi.first.apriltag.AprilTag;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.units.measure.Distance;
+import frc.robot.configuration.RobotDimensions;
+
+import static edu.wpi.first.units.Units.*;
+
 /**
  * A collection of reusable utility methods for common controls-related
  * operations.
@@ -138,5 +148,19 @@ public class ControlsUtilities {
 			Math.max(newValue, oldValue - maxIncrease);
         
 	}
+	
+	public static Pose2d getRobotPoseForReefAprilTagPose(Pose2d tagPose) {
+		
+		return new Pose2d(
+			tagPose.plus(new Transform2d(
+				new Translation2d(RobotDimensions.ROBOT_LENGTH.div(2), Inches.of(0)),
+				tagPose.getRotation()
+			)).getTranslation(),
+			tagPose.getRotation().plus(Rotation2d.fromRotations(0.5))
+		);
+		
+	}
+	
+//	public static Pose2d get
     
 }

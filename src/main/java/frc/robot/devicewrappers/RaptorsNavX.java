@@ -2,8 +2,10 @@ package frc.robot.devicewrappers;
 
 import com.studica.frc.AHRS;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 
 public class RaptorsNavX {
 	
@@ -27,6 +29,12 @@ public class RaptorsNavX {
 		result = result.minus(this.adjustmentAngle);
 		
 		return result;
+		
+	}
+	
+	public AngularVelocity getAngularVelocity() {
+		
+		return DegreesPerSecond.of(this.navX.getRate());
 		
 	}
 	

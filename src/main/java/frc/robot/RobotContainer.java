@@ -5,17 +5,28 @@
 package frc.robot;
 
 import com.ctre.phoenix6.Orchestra;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.configuration.ReefScoringMode;
 import frc.robot.configuration.StatusLightsPattern;
 import frc.robot.controlschemes.ControlsScheme;
+import frc.robot.controlschemes.StandardTeleoperativeControlsScheme;
 import frc.robot.controlschemes.TestingTeleoperativeControlsScheme;
 import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
+import static edu.wpi.first.units.Units.Meters;
+
 public class RobotContainer {
   
   protected static final ControlsScheme CONTROLS_SCHEME =
-      new TestingTeleoperativeControlsScheme();
+      new StandardTeleoperativeControlsScheme();
   
   public final Climber climber;
   
@@ -36,6 +47,8 @@ public class RobotContainer {
   public final CommandXboxController controller1;
   
   public final CommandXboxController controller2;
+  
+  public DriverStation.Alliance alliance;
 
   public RobotContainer() {
     
@@ -50,7 +63,7 @@ public class RobotContainer {
     this.controller1 = new CommandXboxController(0);
     this.controller2 = new CommandXboxController(1);
     
-    this.lights.set(StatusLightsPattern.SOLID_COLORS_LAWN_GREEN);
+    this.lights.set(StatusLightsPattern.SOLID_COLORS_WHITE);
     
     Shuffleboard.getTab("Subsystems").add("Climber", this.climber);
     Shuffleboard.getTab("Subsystems").add("Elevator", this.elevator);
@@ -79,11 +92,6 @@ public class RobotContainer {
         this.controller1,
         this.controller2
     );
-    
-//    this.controller1.a().whileTrue(this.swerve.commands.sysIdSteerQuasistatic(SysIdRoutine.Direction.kForward));
-//    this.controller1.b().whileTrue(this.swerve.commands.sysIdSteerQuasistatic(SysIdRoutine.Direction.kReverse));
-//    this.controller1.x().whileTrue(this.swerve.commands.sysIdSteerDynamic(SysIdRoutine.Direction.kForward));
-//    this.controller1.y().whileTrue(this.swerve.commands.sysIdSteerDynamic(SysIdRoutine.Direction.kReverse));
   
   }
   
