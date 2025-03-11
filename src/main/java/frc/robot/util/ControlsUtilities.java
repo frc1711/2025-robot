@@ -58,15 +58,16 @@ public class ControlsUtilities {
 
 	}
 	
-	public static Point applyDeadband(Point point, double deadband) {
-		
-		double hypotenuse = Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
-		
-		if (Math.abs(hypotenuse) < deadband) return new Point(0, 0);
-		else return point;
-		
-	}
-	
+	/**
+	 * Applies a deadband to the input value whose output is scaled to the
+	 * initial input range. This avoids the issue of control cut-outs at the low
+	 * end of the output range.
+	 *
+	 * @param input The input value.
+	 * @param deadband The deadband.
+	 * @return The input value scaled to the output range, minus the deadband,
+	 * or zero if the input is lower than the deadband.
+	 */
 	public static double applyScaledDeadband(double input, double deadband) {
 		
 		return Math.abs(input) < deadband ? 0 : Math.copySign(

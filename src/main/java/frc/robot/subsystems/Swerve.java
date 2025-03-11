@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.configuration.ReefBranch;
+import frc.robot.configuration.ReefLevel;
 import frc.robot.configuration.RobotDimensions;
 import frc.robot.configuration.SwerveModuleConfiguration;
 import frc.robot.devicewrappers.LimelightHelpers;
@@ -508,18 +509,18 @@ public class Swerve extends SubsystemBase {
 		}
 		
 		public Command drive(
-			Supplier<Point> xyInchesPerSecond,
+			Supplier<Translation2d> xyInchesPerSecond,
 			DoubleSupplier rotationDegreesPerSecond,
 			boolean fieldRelative
 		) {
 			
 			return Swerve.this.run(() -> {
 				
-				Point xy = xyInchesPerSecond.get();
+				Translation2d xy = xyInchesPerSecond.get();
 				
 				Swerve.this.applyChassisSpeeds(new ChassisSpeeds(
-					InchesPerSecond.of(xy.x),
-					InchesPerSecond.of(xy.y),
+					InchesPerSecond.of(xy.getX()),
+					InchesPerSecond.of(xy.getY()),
 					DegreesPerSecond.of(rotationDegreesPerSecond.getAsDouble())
 				), fieldRelative);
 				
@@ -527,21 +528,26 @@ public class Swerve extends SubsystemBase {
 			
 		}
 		
-		public Command goToNearestReefPosition(ReefBranch branch) {
+		public Command goToNearestReefPosition(
+			ReefBranch branch,
+			ReefLevel level
+		) {
 			
 			return this.goToPosition(() -> RobotPoseHelper.getBranchRobotPoseForReefAprilTag(
 				Swerve.this.nearestReefTag.ID,
-				branch
+				branch,
+				level
 			));
 			
 		}
 		
-		public Command waitUntilAtNearestReefPosition(ReefBranch branch) {
+		public Command waitUntilAtNearestReefPosition(ReefBranch branch, ReefLevel level) {
 			
 			return this.waitUntilAtPosition(() ->
 				RobotPoseHelper.getBranchRobotPoseForReefAprilTag(
 					Swerve.this.nearestReefTag.ID,
-					branch
+					branch,
+					level
 				),
 				Inches.of(2),
 				Degrees.of(5)
@@ -553,13 +559,11 @@ public class Swerve extends SubsystemBase {
 			
 			Command command = new Command() {
 				
-				final double LINEAR_KP = 5;
+				final double LINEAR_KP = 0.000000001;
 				
-				final double ANGULAR_KP = 5;
+				final double ANGULAR_KP = 1;
 				
-				final LinearVelocity MAX_LINEAR_VELOCITY = InchesPerSecond.of(15);
-				
-				final AngularVelocity MAX_ANGULAR_VELOCITY = DegreesPerSecond.of(45);
+				final AngularVelocity MAX_ANGULAR_VELOCITY = DegreesPerSecond.of(90);
 				
 				final PIDController xController =
 					new PIDController(LINEAR_KP, 0, 0);
@@ -570,43 +574,85 @@ public class Swerve extends SubsystemBase {
 				final PIDController thetaController =
 					new PIDController(ANGULAR_KP, 0, 0);
 				
+				Pose2d desiredPose;
+				Pose2d currentPose;
+				
 				@Override
 				public void initialize() {
 					
-					Pose2d pose = poseSupplier.get();
+					desiredPose = poseSupplier.get();
 					
-					Swerve.this.field.getObject("setpoint").setPose(pose);
+					Swerve.this.field.getObject("setpoint").setPose(desiredPose);
 					
 					this.thetaController.enableContinuousInput(-180, 180);
 					
-					xController.setSetpoint(pose.getMeasureX().in(Inches));
-					yController.setSetpoint(pose.getMeasureY().in(Inches));
-					thetaController.setSetpoint(pose.getRotation().getMeasure().in(Degrees));
+					xController.setSetpoint(desiredPose.getMeasureX().in(Inches));
+					yController.setSetpoint(desiredPose.getMeasureY().in(Inches));
+					thetaController.setSetpoint(desiredPose.getRotation().getMeasure().in(Degrees));
 				
 				}
 				
 				@Override
 				public void execute() {
 					
-					Pose2d currentPose = Swerve.this.poseEstimator
+					currentPose = Swerve.this.poseEstimator
 						.getEstimatedPosition();
 					
-					double xFeed = xController.calculate(currentPose.getMeasureX().in(Inches));
-					double yFeed = yController.calculate(currentPose.getMeasureY().in(Inches));
+					double inchesRemaining = Meters.of(
+						currentPose.getTranslation()
+							.minus(desiredPose.getTranslation())
+							.getNorm()
+					).in(Inches);
+					
+					System.out.println("Distance remaining: " + inchesRemaining + "in");
+					
 					double thetaFeed = thetaController.calculate(currentPose.getRotation().getDegrees());
+					Translation2d point = new Translation2d(
+						xController.calculate(currentPose.getMeasureX().in(Inches)),
+						yController.calculate(currentPose.getMeasureY().in(Inches))
+					);
+					
+					
+					
+					LinearVelocity maxVelocity = InchesPerSecond.of(Math.min(
+						inchesRemaining > 12
+							? (inchesRemaining * 3) - 9
+							: inchesRemaining > 3
+								? inchesRemaining + 15
+								: inchesRemaining * 6,
+						60
+					));
+					
+					point = point.div(
+						point.getNorm() /
+						maxVelocity.in(InchesPerSecond)
+					);
 					
 					if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
 						
-						xFeed *= -1;
-						yFeed *= -1;
+						point = point.times(-1);
 						
 					}
 					
 					Swerve.this.applyChassisSpeeds(new ChassisSpeeds(
-						InchesPerSecond.of(Math.min(xFeed, this.MAX_LINEAR_VELOCITY.in(InchesPerSecond))),
-						InchesPerSecond.of(Math.min(yFeed, this.MAX_LINEAR_VELOCITY.in(InchesPerSecond))),
+						InchesPerSecond.of(point.getX()),
+						InchesPerSecond.of(point.getY()),
 						DegreesPerSecond.of(Math.min(thetaFeed, this.MAX_ANGULAR_VELOCITY.in(DegreesPerSecond)))
 					), true);
+					
+				}
+				
+				@Override
+				public boolean isFinished() {
+					
+//					Distance distanceTolerance = Inches.of(0.125);
+//
+//					return (
+//						currentPose.getMeasureX().isNear(desiredPose.getMeasureX(), distanceTolerance) &&
+//						currentPose.getMeasureY().isNear(desiredPose.getMeasureY(), distanceTolerance)
+//					);
+					
+					return false;
 					
 				}
 				
@@ -614,6 +660,7 @@ public class Swerve extends SubsystemBase {
 				public void end(boolean interrupted) {
 					
 					Swerve.this.field.getObject("setpoint").setPoses();
+					Swerve.this.applyChassisSpeeds(new ChassisSpeeds(0, 0, 0), false);
 					
 				}
 				

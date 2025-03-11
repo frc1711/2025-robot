@@ -83,8 +83,8 @@ public class ComplexCommands {
 	
 	public Command autoScoreOnReef(ReefLevel level, ReefBranch branch) {
 		
-		return this.robot.swerve.commands.goToNearestReefPosition(branch).alongWith(
-			this.robot.swerve.commands.waitUntilAtNearestReefPosition(branch)
+		return this.robot.swerve.commands.goToNearestReefPosition(branch, level).alongWith(
+			this.robot.swerve.commands.waitUntilAtNearestReefPosition(branch, level)
 				.andThen(new SelectCommand<ReefLevel>(Map.ofEntries(
 					Map.entry(ReefLevel.L1_TROUGH, this.scoreOnL1()),
 					Map.entry(ReefLevel.L2, this.scoreOnL2()),

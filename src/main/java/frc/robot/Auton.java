@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -22,27 +23,27 @@ public enum Auton {
 	),
 	
 	CROSS_THE_LINE("Cross the Line", robot ->
-		robot.swerve.commands.drive(() -> new Point(-15, 0), () -> 0, true)
+		robot.swerve.commands.drive(() -> new Translation2d(-15, 0), () -> 0, true)
 			.withTimeout(Seconds.of(4))
 	),
 	
 	SINGLE_L1_CORAL_CENTER("Single L1 Coral (Center)", robot ->
-		robot.swerve.commands.drive(() -> new Point(-15, 0), () -> 0, true)
+		robot.swerve.commands.drive(() -> new Translation2d(-15, 0), () -> 0, true)
 			.withTimeout(Seconds.of(4))
 			.andThen(robot.mailbox.commands.feed().withTimeout(2))
 	),
 	
 	SINGLE_L4_CORAL_CENTER("Single L4 Coral (Center)", robot ->
 		new SequentialCommandGroup(
-			robot.swerve.commands.drive(() -> new Point(-15, 0), () -> 0, true).withTimeout(Seconds.of(6)),
-			robot.swerve.commands.drive(() -> new Point(10, 0), () -> 0, true).withTimeout(Seconds.of(0.25)),
-			robot.swerve.commands.drive(() -> new Point(0, 0), () -> 0, true).withTimeout(Seconds.of(0.1)),
+			robot.swerve.commands.drive(() -> new Translation2d(-15, 0), () -> 0, true).withTimeout(Seconds.of(6)),
+			robot.swerve.commands.drive(() -> new Translation2d(10, 0), () -> 0, true).withTimeout(Seconds.of(0.25)),
+			robot.swerve.commands.drive(() -> new Translation2d(0, 0), () -> 0, true).withTimeout(Seconds.of(0.1)),
 			robot.complexCommands.scoreOnL4()
 		)
 	),
 	
 	SINGLE_CORAL("Single Coral", robot ->
-		robot.swerve.commands.drive(() -> new Point(-15, 0), () -> 0, true)
+		robot.swerve.commands.drive(() -> new Translation2d(-15, 0), () -> 0, true)
 			.until(robot.swerve::hasReefAprilTagLock)
 			.andThen(robot.complexCommands.autoScoreOnReef(ReefLevel.L3, ReefBranch.LEFT))
 	),

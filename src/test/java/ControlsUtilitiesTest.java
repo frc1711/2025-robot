@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import frc.robot.configuration.ReefLevel;
 import frc.robot.util.ControlsUtilities;
 import frc.robot.util.RobotPoseHelper;
 import org.junit.jupiter.api.Test;
@@ -69,7 +70,7 @@ public class ControlsUtilitiesTest {
 		System.out.println("Tag " + tagID + " Pose: (" + tagPose.getX() + ", " + tagPose.getY() + ")");
 		
 //		Pose2d robotPose = ControlsUtilities.getRobotPoseForReefAprilTagPose(tagPose);
-		Pose2d robotPose = RobotPoseHelper.getCenteredRobotPoseForReefAprilTag(tagID);
+		Pose2d robotPose = RobotPoseHelper.getCenteredRobotPoseForReefAprilTag(tagID, ReefLevel.L2);
 		
 		assertPoseEquals(robotPose, desiredPose);
 		

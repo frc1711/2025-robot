@@ -5,23 +5,12 @@
 package frc.robot;
 
 import com.ctre.phoenix6.Orchestra;
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.configuration.ReefScoringMode;
 import frc.robot.configuration.StatusLightsPattern;
 import frc.robot.controlschemes.ControlsScheme;
 import frc.robot.controlschemes.StandardTeleoperativeControlsScheme;
-import frc.robot.controlschemes.TestingTeleoperativeControlsScheme;
 import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-
-import static edu.wpi.first.units.Units.Meters;
 
 public class RobotContainer {
   
@@ -47,8 +36,6 @@ public class RobotContainer {
   public final CommandXboxController controller1;
   
   public final CommandXboxController controller2;
-  
-  public DriverStation.Alliance alliance;
 
   public RobotContainer() {
     

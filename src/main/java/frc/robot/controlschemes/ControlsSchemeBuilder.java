@@ -1,5 +1,6 @@
 package frc.robot.controlschemes;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Time;
@@ -60,8 +61,8 @@ public class ControlsSchemeBuilder {
 	) {
 		
 		Time timeToMaxVelocity = Seconds.of(0.125);
-		LinearVelocity maxLinearVelocity = InchesPerSecond.of(100);
-		AngularVelocity maxAngularVelocity = DegreesPerSecond.of(180);
+		LinearVelocity maxLinearVelocity = InchesPerSecond.of(300);
+		AngularVelocity maxAngularVelocity = DegreesPerSecond.of(360);
 		Swerve swerve = this.robot.swerve;
 		
 		swerve.setDefaultCommand(swerve.commands.drive(
@@ -90,10 +91,10 @@ public class ControlsSchemeBuilder {
 		
 		LinearVelocity speed = FeetPerSecond.of(1.5);
 		
-		controller.povUp().whileTrue(this.robot.swerve.commands.drive(() -> new Point(speed.in(InchesPerSecond), 0), () -> 0, false));
-		controller.povRight().whileTrue(this.robot.swerve.commands.drive(() -> new Point(0, -speed.in(InchesPerSecond)), () -> 0, false));
-		controller.povLeft().whileTrue(this.robot.swerve.commands.drive(() -> new Point(0, speed.in(InchesPerSecond)), () -> 0, false));
-		controller.povDown().whileTrue(this.robot.swerve.commands.drive(() -> new Point(-speed.in(InchesPerSecond), 0), () -> 0, false));
+		controller.povUp().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(speed.in(InchesPerSecond), 0), () -> 0, false));
+		controller.povRight().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(0, -speed.in(InchesPerSecond)), () -> 0, false));
+		controller.povLeft().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(0, speed.in(InchesPerSecond)), () -> 0, false));
+		controller.povDown().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(-speed.in(InchesPerSecond), 0), () -> 0, false));
 		
 		return this;
 		

@@ -1,8 +1,5 @@
 package frc.robot.configuration;
 
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.smartdashboard.SendableBuilderImpl;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.util.List;
@@ -15,7 +12,7 @@ public enum ReefScoringMode {
 	
 	RIGHT("Right (auto align)");
 	
-	public static final ReefScoringMode DEFAULT = MANUAL;
+	public static final ReefScoringMode DEFAULT = LEFT;
 	
 	public static ReefScoringMode ACTIVE = DEFAULT;
 	
