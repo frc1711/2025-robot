@@ -4,16 +4,15 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.configuration.ReefBranch;
+import edu.wpi.first.wpilibj2.command.*;
+import frc.robot.configuration.FieldThird;
+import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.ReefLevel;
-import frc.robot.util.Point;
+import frc.robot.util.RobotPoseBuilder;
 
 import java.util.function.Function;
 
-import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.*;
 
 public enum Auton {
 	
@@ -25,6 +24,68 @@ public enum Auton {
 	CROSS_THE_LINE("Cross the Line", robot ->
 		robot.swerve.commands.drive(() -> new Translation2d(-15, 0), () -> 0, true)
 			.withTimeout(Seconds.of(4))
+	),
+	
+	STANDARD_AUTON("Standard Auton", robot ->
+//		robot.swerve.commands.drive(() -> new Translation2d(-15, 0), () -> 0, true)
+//			.until(robot.odometry::hasVisionData)
+		new InstantCommand()
+			.andThen(robot.complexCommands.autoScoreOnReef(() -> robot.odometry.getFieldThird().getReefFrontAprilTagID(), ReefLevel.L4, ReefAlignment.RIGHT))
+			.andThen(
+				robot.swerve.commands.goToRelativePosition(() ->
+					RobotPoseBuilder.fromPose(robot.odometry.getPose())
+						.withFieldRelativeTranslation(new Translation2d(
+							Inches.of(0),
+							Inches.of(20).times(
+								robot.odometry.getFieldThird() == FieldThird.LEFT
+									? 1
+									: -1
+							)
+						)).toPose(),
+					InchesPerSecond.of(80),
+					Inches.of(6),
+					Degrees.of(5)
+				).andThen(
+					robot.swerve.commands.goToPosition(() ->
+						RobotPoseBuilder.getCoralStationLoadingPose(
+							robot.odometry.getFieldThird().getCoralStationAprilTagID()
+						).toPose(),
+						InchesPerSecond.of(80),
+						Inches.of(0.25),
+						Degrees.of(1),
+						null
+					).withDeadline(robot.swerve.commands.waitUntilAtPosition(
+						() -> RobotPoseBuilder.getCoralStationLoadingPose(
+							robot.odometry.getFieldThird().getCoralStationAprilTagID()
+						).toPose(),
+						Inches.of(0.5),
+						Degrees.of(1)
+					)).withTimeout(3)
+				).andThen(new InstantCommand(() -> System.out.println("Got to position")))
+				.andThen(
+					robot.swerve.commands.drive(
+						() -> new Translation2d(Inches.of(-10), Inches.of(0)),
+						() -> 0,
+						false
+					).withDeadline(
+						Commands.waitUntil(robot.intake.triggers.isCoralInUpperIntake())
+							.andThen(
+								robot.complexCommands.autoAcceptMail()
+									.alongWith(robot.complexCommands.autofeedMailbox())
+									.until(robot.intake.triggers.isCoralInLowerIntake())
+							)
+							.andThen(
+								robot.complexCommands.autoAcceptMail()
+									.alongWith(robot.complexCommands.autofeedMailbox())
+									.until(robot.intake.triggers.isCoralInLowerIntake().negate())
+							)
+					)
+				)
+				.andThen(
+					robot.complexCommands.autoScoreOnReef(ReefLevel.L4, ReefAlignment.RIGHT)
+				)
+					.onlyIf(() -> robot.odometry.getFieldThird() != FieldThird.CENTER)
+			)
 	),
 	
 	SINGLE_L1_CORAL_CENTER("Single L1 Coral (Center)", robot ->
@@ -44,8 +105,8 @@ public enum Auton {
 	
 	SINGLE_CORAL("Single Coral", robot ->
 		robot.swerve.commands.drive(() -> new Translation2d(-15, 0), () -> 0, true)
-			.until(robot.swerve::hasReefAprilTagLock)
-			.andThen(robot.complexCommands.autoScoreOnReef(ReefLevel.L3, ReefBranch.LEFT))
+			.until(robot.odometry::hasVisionData)
+			.andThen(robot.complexCommands.autoScoreOnReef(() -> robot.odometry.getFieldThird().getReefFrontAprilTagID(), ReefLevel.L4, ReefAlignment.LEFT))
 	),
 	
 	DOUBLE_CORAL(

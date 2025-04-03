@@ -15,7 +15,9 @@ public class TestingTeleoperativeControlsScheme implements ControlsScheme {
 		(new ControlsSchemeBuilder(robotContainer))
 			.configureDefaultRobotCommands()
 			.useControllerJoysticksForDriving(controller1)
+			.useTriggersToLoad(controller1)
 			.useABXYToScoreCoral(controller1)
+			.usePOVButtonsToSwitchReefScoringModes(controller1)
 			.useBumpersToClimb(controller1)
 			.useBackButtonToUnclimb(controller1)
 			.useStartToResetFieldHeading(controller1);

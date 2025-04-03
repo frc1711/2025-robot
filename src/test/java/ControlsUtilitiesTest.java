@@ -1,14 +1,10 @@
-import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import frc.robot.configuration.ReefLevel;
-import frc.robot.util.ControlsUtilities;
-import frc.robot.util.RobotPoseHelper;
-import org.junit.jupiter.api.Test;
+import frc.robot.configuration.ReefAlignment;
+import frc.robot.util.RobotPoseBuilder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -70,7 +66,8 @@ public class ControlsUtilitiesTest {
 		System.out.println("Tag " + tagID + " Pose: (" + tagPose.getX() + ", " + tagPose.getY() + ")");
 		
 //		Pose2d robotPose = ControlsUtilities.getRobotPoseForReefAprilTagPose(tagPose);
-		Pose2d robotPose = RobotPoseHelper.getCenteredRobotPoseForReefAprilTag(tagID, ReefLevel.L2);
+//		Pose2d robotPose = RobotPoseHelper.getCenteredRobotPoseForReefAprilTag(tagID, ReefLevel.L2);
+		Pose2d robotPose = RobotPoseBuilder.getReefScoringPose(tagID, ReefAlignment.CENTER).toPose();
 		
 		assertPoseEquals(robotPose, desiredPose);
 		

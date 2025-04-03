@@ -8,6 +8,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.configuration.CANDevice;
+import frc.robot.configuration.ReefLevel;
 
 public class Mailbox extends SubsystemBase {
 	
@@ -60,6 +61,17 @@ public class Mailbox extends SubsystemBase {
 		public Command feed(double speed) {
 			
 			return this.spin(speed);
+			
+		}
+		
+		public Command feed(ReefLevel level) {
+			
+			return this.feed(switch (level) {
+				case L1_TROUGH -> 0.6;
+				case L2 -> 0.75;
+				case L3 -> 0.9;
+				case L4 -> 0.5;
+			});
 			
 		}
 		

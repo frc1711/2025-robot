@@ -22,13 +22,14 @@ public final class RobotDimensions {
 	
 	public static final Distance SWERVE_FR_WHEELBASE_DISTANCE = Inches.of(24.5);
 	
-	public static final Distance SWERVE_WHEEL_DIAMETER = Inches.of(3);
+	public static final Distance SWERVE_WHEEL_DIAMETER = //Inches.of(3);
+		Inches.of(2.875);
 	
 	public static final Distance SWERVE_WHEEL_CIRCUMFERENCE =
 		SWERVE_WHEEL_DIAMETER.times(Math.PI);
 	
 	public static final double SWERVE_DRIVE_MOTOR_REDUCTION =
-		(45.0 * 22.0) / (14.0 * 15.0);
+		(45.0 * 22.0) / (12.0 * 15.0);
 	
 	public static final Distance GROUND_CLEARANCE = Inches.of(2.4375);
 	
@@ -59,7 +60,8 @@ public final class RobotDimensions {
 			ELEVATOR_STAGE_1_TRAVEL_PER_SHAFT_REVOLUTION.div(ELEVATOR_GEARBOX_RATIO);
 	
 	public static final Distance MAILBOX_LR_OFFSET_TO_ROBOT_CENTER =
-		Inches.of(11);
+//		Inches.of(11);
+		Inches.of(12);
 	
 	public static final Distance REEF_BRANCH_SEPARATION_DISTANCE =
 		Inches.of(13);

@@ -1,8 +1,10 @@
 package frc.robot.configuration;
 
-public enum ReefBranch {
+public enum ReefAlignment {
 	
 	LEFT,
+	
+	CENTER,
 	
 	RIGHT;
 	

@@ -4,34 +4,34 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.util.List;
 
-public enum ReefScoringMode {
+public enum ReefAlignmentMode {
 	
 	MANUAL("Manual"),
 	
-	LEFT("Left (auto align)"),
+	LEFT("Left"),
 	
-	RIGHT("Right (auto align)");
+	RIGHT("Right");
 	
-	public static final ReefScoringMode DEFAULT = LEFT;
+	public static final ReefAlignmentMode DEFAULT = LEFT;
 	
-	public static ReefScoringMode ACTIVE = DEFAULT;
+	public static ReefAlignmentMode ACTIVE = DEFAULT;
 	
-	private static final String SENDABLE_NAME = "Reef Scoring Mode";
+	private static final String SENDABLE_NAME = "Reef Alignment Mode";
 	
 	protected final String humanReadableName;
 	
-	ReefScoringMode(String humanReadableName) {
+	ReefAlignmentMode(String humanReadableName) {
 		
 		this.humanReadableName = humanReadableName;
 		
 	}
 	
-	public static void setMode(ReefScoringMode mode) {
+	public static void setMode(ReefAlignmentMode mode) {
 		
-		ReefScoringMode.ACTIVE = mode;
+		ReefAlignmentMode.ACTIVE = mode;
 		
 		SmartDashboard.putString(
-			ReefScoringMode.SENDABLE_NAME,
+			ReefAlignmentMode.SENDABLE_NAME,
 			mode.getHumanReadableName()
 		);
 		
@@ -39,13 +39,13 @@ public enum ReefScoringMode {
 	
 	public static void nextMode() {
 		
-		ReefScoringMode.setMode(ReefScoringMode.ACTIVE.getNext());
+		ReefAlignmentMode.setMode(ReefAlignmentMode.ACTIVE.getNext());
 		
 	}
 	
 	public static void previousMode() {
 		
-		ReefScoringMode.setMode(ReefScoringMode.ACTIVE.getPrevious());
+		ReefAlignmentMode.setMode(ReefAlignmentMode.ACTIVE.getPrevious());
 		
 	}
 	
@@ -55,9 +55,9 @@ public enum ReefScoringMode {
 		
 	}
 	
-	public ReefScoringMode getNext() {
+	public ReefAlignmentMode getNext() {
 		
-		List<ReefScoringMode> modes = List.of(ReefScoringMode.values());
+		List<ReefAlignmentMode> modes = List.of(ReefAlignmentMode.values());
 		int currentIndex = modes.indexOf(this);
 		int nextIndex = currentIndex + 1;
 		
@@ -67,9 +67,9 @@ public enum ReefScoringMode {
 		
 	}
 	
-	public ReefScoringMode getPrevious() {
+	public ReefAlignmentMode getPrevious() {
 		
-		List<ReefScoringMode> modes = List.of(ReefScoringMode.values());
+		List<ReefAlignmentMode> modes = List.of(ReefAlignmentMode.values());
 		int currentIndex = modes.indexOf(this);
 		int previousIndex = currentIndex - 1;
 		

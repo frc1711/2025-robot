@@ -9,6 +9,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.configuration.FieldThird;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -126,6 +127,41 @@ public class VirtualField {
 	public static AprilTag getNearestReefAprilTag(Translation2d position) {
 		
 		return VirtualField.getNearestReefAprilTag(
+			DriverStation.getAlliance().orElse(DriverStation.Alliance.Red),
+			position
+		);
+		
+	}
+	
+	public static FieldThird getFieldThirdForPosition(
+		DriverStation.Alliance alliance,
+		Translation2d position
+	) {
+		
+		Distance reefSectionWidth = Inches.of(37);
+		Distance leftSideCutoff = FIELD_WIDTH.minus(reefSectionWidth).div(2);
+		Distance rightSideCutoff = FIELD_WIDTH.minus(leftSideCutoff);
+		Distance robotYPosition = position.getMeasureY();
+		
+		if (robotYPosition.lt(leftSideCutoff)) {
+			
+			return alliance == DriverStation.Alliance.Red
+				? FieldThird.LEFT
+				: FieldThird.RIGHT;
+			
+		} else if (robotYPosition.gt(rightSideCutoff)) {
+			
+			return alliance == DriverStation.Alliance.Red
+				? FieldThird.RIGHT
+				: FieldThird.LEFT;
+			
+		} else return FieldThird.CENTER;
+		
+	}
+	
+	public static FieldThird getFieldThirdForPosition(Translation2d position) {
+		
+		return VirtualField.getFieldThirdForPosition(
 			DriverStation.getAlliance().orElse(DriverStation.Alliance.Red),
 			position
 		);

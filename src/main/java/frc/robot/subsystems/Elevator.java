@@ -43,6 +43,7 @@ public class Elevator extends SubsystemBase {
 		this.request.Slot = 0;
 		
 		SmartDashboard.putData(this.commands.setCurrentPositionAsZero());
+		SmartDashboard.putData(this.commands.calibrate());
 		
 	}
 	
@@ -62,8 +63,8 @@ public class Elevator extends SubsystemBase {
 		config.Slot0.kI = 0;
 		config.Slot0.kD = 0.011978;
 		
-		config.MotionMagic.MotionMagicCruiseVelocity = 70;
-		config.MotionMagic.MotionMagicAcceleration = 280;
+		config.MotionMagic.MotionMagicCruiseVelocity = 100;
+		config.MotionMagic.MotionMagicAcceleration = 200;
 		config.MotionMagic.MotionMagicJerk = 2800;
 		
 		config.HardwareLimitSwitch.ForwardLimitEnable = false;
@@ -87,7 +88,7 @@ public class Elevator extends SubsystemBase {
 		
 	}
 	
-	protected void goToPosition(ElevatorPosition position) {
+	public void goToPosition(ElevatorPosition position) {
 		
 		this.motorController.setControl(
 			this.request.withPosition(position.getMotorShaftAngle())
@@ -194,7 +195,7 @@ public class Elevator extends SubsystemBase {
 			
 			return edu.wpi.first.wpilibj2.command.Commands.runOnce(
 				Elevator.this::setCurrentPositionAsZero
-			).withName("Elevator: Set Current Position as Zero")
+			).withName("Set Current Position as Zero")
 			.ignoringDisable(true);
 			
 		}
@@ -214,7 +215,8 @@ public class Elevator extends SubsystemBase {
 				},
 				() -> Elevator.this.motorController.getTorqueCurrent().getValue().lt(Amps.of(-20)),
 				Elevator.this
-			).andThen(this.simpleMove(0.1).withTimeout(0.5))
+			)
+				.andThen(this.simpleMove(0.1).withTimeout(0.5))
 				.andThen(() -> Elevator.this.motorController.set(-0.02))
 				.andThen(new WaitCommand(0.5))
 				.andThen(new FunctionalCommand(
@@ -229,7 +231,9 @@ public class Elevator extends SubsystemBase {
 					},
 					() -> Elevator.this.motorController.getTorqueCurrent().getValue().lt(Amps.of(-10)),
 					Elevator.this
-				));
+				))
+				.andThen(this.goTo(ElevatorPosition.RESTING))
+				.withName("Calibrate");
 			
 		}
 		
@@ -242,7 +246,7 @@ public class Elevator extends SubsystemBase {
 			// todo -- use same tolerance as other place
 			return new Trigger(() ->
 				Elevator.this.getPosition().getStage2TravelOffset()
-					.isNear(position.getStage2TravelOffset(), Inches.of(0.25))
+					.isNear(position.getStage2TravelOffset(), Inches.of(0.5))
 			);
 			
 		}

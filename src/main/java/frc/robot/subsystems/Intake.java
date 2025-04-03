@@ -6,13 +6,13 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.configuration.CANDevice;
+import frc.robot.devicewrappers.RaptorsLaserCAN;
 
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Millimeters;
@@ -21,9 +21,9 @@ public class Intake extends SubsystemBase {
 	
 	protected final TalonFX motorController;
 	
-	protected final LaserCan upperBeamBreak;
+	protected final RaptorsLaserCAN upperBeamBreak;
 	
-	protected final LaserCan lowerBeamBreak;
+	protected final RaptorsLaserCAN lowerBeamBreak;
 	
 	public final Commands commands;
 	
@@ -33,8 +33,8 @@ public class Intake extends SubsystemBase {
 		
 		this.motorController =
 			new TalonFX(CANDevice.AGITATOR_MOTOR_CONTROLLER.id);
-		this.upperBeamBreak = new LaserCan(CANDevice.INTAKE_UPPER_LASER_CAN.id);
-		this.lowerBeamBreak = new LaserCan(CANDevice.INTAKE_LOWER_LASER_CAN.id);
+		this.upperBeamBreak = new RaptorsLaserCAN(CANDevice.INTAKE_UPPER_LASER_CAN);
+		this.lowerBeamBreak = new RaptorsLaserCAN(CANDevice.INTAKE_LOWER_LASER_CAN);
 		this.commands = new Commands();
 		this.triggers = new Triggers();
 		
@@ -61,13 +61,26 @@ public class Intake extends SubsystemBase {
 		
 		builder.addDoubleProperty(
 			"Upper Beambreak Distance (Inches)",
-			() -> Millimeters.of(this.upperBeamBreak.getMeasurement().distance_mm).in(Inches),
+			() -> {
+				Distance distance = this.upperBeamBreak.getDistance();
+				
+				if (distance == null) return 0;
+				else return distance.in(Inches);
+				
+			},
 			null
 		);
 		
 		builder.addDoubleProperty(
 			"Lower Beambreak Distance (Inches)",
-			() -> Millimeters.of(this.lowerBeamBreak.getMeasurement().distance_mm).in(Inches),
+			() -> {
+				
+				Distance distance = this.lowerBeamBreak.getDistance();
+				
+				if (distance == null) return 0;
+				return distance.in(Inches);
+				
+			},
 			null
 		);
 		
@@ -75,18 +88,12 @@ public class Intake extends SubsystemBase {
 	
 	public class Commands {
 		
-		protected Command spin(double speed) {
+		public Command feed(double speed) {
 			
 			return Intake.this.startEnd(
 				() -> Intake.this.motorController.set(speed),
 				Intake.this.motorController::stopMotor
 			);
-			
-		}
-		
-		public Command feed(double speed) {
-			
-			return this.spin(speed);
 			
 		}
 		
@@ -96,9 +103,15 @@ public class Intake extends SubsystemBase {
 			
 		}
 		
+		public Command unfeed(double speed) {
+			
+			return this.feed(-speed);
+			
+		}
+		
 		public Command unfeed() {
 			
-			return this.spin(-1);
+			return this.unfeed(1);
 			
 		}
 		
@@ -108,29 +121,13 @@ public class Intake extends SubsystemBase {
 		
 		public Trigger isCoralInUpperIntake() {
 			
-			return new Trigger(() -> {
-				
-				Distance measuredDistance = Millimeters.of(
-					Intake.this.upperBeamBreak.getMeasurement().distance_mm
-				);
-				
-				return measuredDistance.lte(Inches.of(8));
-				
-			});
+			return Intake.this.upperBeamBreak.getDistanceTrigger(Inches.of(8));
 			
 		}
 		
 		public Trigger isCoralInLowerIntake() {
 			
-			return new Trigger(() -> {
-				
-				Distance measuredDistance = Millimeters.of(
-					Intake.this.lowerBeamBreak.getMeasurement().distance_mm
-				);
-				
-				return measuredDistance.lte(Inches.of(1.5));
-				
-			});
+			return Intake.this.lowerBeamBreak.getDistanceTrigger(Inches.of(1.5));
 			
 		}
 		

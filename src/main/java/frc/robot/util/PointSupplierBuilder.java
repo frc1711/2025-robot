@@ -8,6 +8,8 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import static edu.wpi.first.units.Units.*;
+
 public class PointSupplierBuilder implements Supplier<Translation2d> {
 	
 	protected final Supplier<Translation2d> supplier;
@@ -196,8 +198,8 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 				Translation2d original = PointSupplierBuilder.this.get();
 				
 				return new Translation2d(
-					this.xLimiter.calculate(original.getX()),
-					this.yLimiter.calculate(original.getY())
+					Inches.of(this.xLimiter.calculate(original.getMeasureX().in(Inches))),
+					Inches.of(this.yLimiter.calculate(original.getMeasureY().in(Inches)))
 				);
 				
 			}

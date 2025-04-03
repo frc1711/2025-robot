@@ -5,14 +5,15 @@
 package frc.robot;
 
 import au.grapplerobotics.CanBridge;
-import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.configuration.DoublePreference;
-import frc.robot.configuration.ReefScoringMode;
+import frc.robot.configuration.ReefAlignmentMode;
 import org.littletonrobotics.urcl.URCL;
+
+import static edu.wpi.first.units.Units.Degrees;
 
 public class Robot extends TimedRobot {
   
@@ -43,7 +44,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     
     Auton.initializeShuffleboardSelector();
-    ReefScoringMode.setMode(ReefScoringMode.DEFAULT);
+    ReefAlignmentMode.setMode(ReefAlignmentMode.DEFAULT);
     
   }
 
@@ -63,6 +64,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     
+    this.robotContainer.swerve.calibrateFieldRelativeHeading(Degrees.of(180));
     this.autonCommand = Auton.runSelectedAuton(this.robotContainer);
     
   }

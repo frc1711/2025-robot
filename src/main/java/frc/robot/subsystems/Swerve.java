@@ -4,29 +4,29 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.*;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.measure.*;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
-import frc.robot.configuration.ReefBranch;
-import frc.robot.configuration.ReefLevel;
-import frc.robot.configuration.RobotDimensions;
-import frc.robot.configuration.SwerveModuleConfiguration;
-import frc.robot.devicewrappers.LimelightHelpers;
+import frc.robot.configuration.*;
 import frc.robot.devicewrappers.RaptorsNavX;
 import frc.robot.util.*;
 
@@ -39,20 +39,9 @@ import static edu.wpi.first.units.Units.*;
 
 public class Swerve extends SubsystemBase {
 	
-	protected static final String FRONT_LIMELIGHT_NAME = "limelight-front";
+	protected static final double SLOW_MODE_MULTIPLIER = 0.5;
 	
-	protected static final String REAR_LIMELIGHT_NAME = "limelight-rear";
-	
-	protected static final int[] REEF_TAG_IDS = {
-		6, 7, 8, 9, 10, 11, 17, 18, 19, 20, 21, 22
-	};
-	
-	protected static final String[] LIMELIGHTS = new String[] {
-		FRONT_LIMELIGHT_NAME,
-		REAR_LIMELIGHT_NAME
-	};
-	
-	public final SwerveModule[] modules;
+	protected final SwerveModule[] modules;
 	
 	protected final PIDController headingPIDController;
 	
@@ -60,27 +49,19 @@ public class Swerve extends SubsystemBase {
 	
 	protected final SwerveDriveKinematics kinematics;
 	
-//	protected final SwerveDriveOdometry odometry;
-	
-	protected final SwerveDrivePoseEstimator poseEstimator;
-	
-	protected final Field2d field;
-	
-	protected Pose2d mostRecentFrontTag;
-	
-	protected Pose2d mostRecentRearTag;
-	
-	protected AprilTag mostRecentReefTag;
-	
-	protected AprilTag nearestReefTag;
-	
-	protected boolean isHeadingLockEnabled;
-	
-	protected ChassisSpeeds chassisSpeeds;
+	protected final RaptorsOdometry odometry;
 	
 	public final Swerve.Commands commands;
 	
-	public Swerve() {
+	protected boolean isHeadingLockEnabled;
+	
+	public boolean isSlowModeEnabled;
+	
+	protected ChassisSpeeds chassisSpeeds;
+	
+	protected boolean shouldUseChassisSpeeds;
+	
+	public Swerve(RaptorsOdometry odometry) {
 		
 		this.modules = SwerveModuleConfiguration.getModuleConfigurations()
 			.map(SwerveModule::new)
@@ -93,18 +74,12 @@ public class Swerve extends SubsystemBase {
 				.map(config -> config.positionInRobot)
 				.toArray(Translation2d[]::new)
 		);
-		this.poseEstimator = new SwerveDrivePoseEstimator(
-			this.kinematics,
-			new Rotation2d(this.getFieldRelativeHeading()),
-			this.getModulePositions(),
-			new Pose2d(),
-			VecBuilder.fill(1, 1, 0.7),
-			VecBuilder.fill(5, 5, 999999)
-		);
-		this.field = new Field2d();
 		this.isHeadingLockEnabled = false;
 		this.commands = new Swerve.Commands();
+		this.odometry = odometry;
+		this.isSlowModeEnabled = false;
 		this.chassisSpeeds = new ChassisSpeeds(0, 0, 0);
+		this.shouldUseChassisSpeeds = true;
 		
 		this.headingPIDController.enableContinuousInput(0, 360);
 		
@@ -122,17 +97,16 @@ public class Swerve extends SubsystemBase {
 		);
 		
 		SmartDashboard.putData("Swerve Drive", this.getSwerveStateSendable());
-		SmartDashboard.putData("Field Odometry", this.field);
 		
 	}
 	
-	protected Stream<SwerveModule> getModuleStream() {
+	public Stream<SwerveModule> getModuleStream() {
 		
 		return Stream.of(this.modules);
 		
 	}
 	
-	protected SwerveModulePosition[] getModulePositions() {
+	public SwerveModulePosition[] getModulePositions() {
 		
 		return this.getModuleStream()
 			.map(SwerveModule::getPosition)
@@ -148,9 +122,33 @@ public class Swerve extends SubsystemBase {
 		
 	}
 	
+	public SwerveDriveKinematics getKinematics() {
+		
+		return this.kinematics;
+		
+	}
+	
 	public void stop() {
 		
 		this.applyChassisSpeeds(new ChassisSpeeds(0, 0, 0), false);
+		
+	}
+	
+	public void setDriveMotorIdleState(SparkBaseConfig.IdleMode idleMode) {
+		
+		this.getModuleStream().forEach(module -> {
+			
+			SparkMaxConfig config = SwerveModule.getDriveMotorControllerConfig();
+			
+			config.idleMode(idleMode);
+			
+			module.driveMotorController.configure(
+				config,
+				SparkBase.ResetMode.kResetSafeParameters,
+				SparkBase.PersistMode.kNoPersistParameters
+			);
+			
+		});
 		
 	}
 	
@@ -173,9 +171,18 @@ public class Swerve extends SubsystemBase {
 		
 	}
 	
-	public boolean hasReefAprilTagLock() {
+	public LinearVelocity getLinearVelocity() {
 		
-		return this.mostRecentReefTag != null;
+		return MetersPerSecond.of(new Translation2d(
+			this.chassisSpeeds.vxMetersPerSecond,
+			this.chassisSpeeds.vyMetersPerSecond
+		).getNorm());
+		
+	}
+	
+	public AngularVelocity getAngularVelocity() {
+		
+		return this.gyro.getAngularVelocity();
 		
 	}
 	
@@ -216,6 +223,24 @@ public class Swerve extends SubsystemBase {
 
 //		chassisSpeeds.omegaRadiansPerSecond *= 1.5;
 		
+		if (this.isSlowModeEnabled) {
+			
+			Translation2d originalLinearSpeeds = new Translation2d(
+				chassisSpeeds.vxMetersPerSecond,
+				chassisSpeeds.vyMetersPerSecond
+			);
+			
+			Translation2d newLinearSpeeds = new Translation2d(
+				originalLinearSpeeds.getNorm() * Swerve.SLOW_MODE_MULTIPLIER,
+				originalLinearSpeeds.getAngle()
+			);
+			
+			chassisSpeeds.vxMetersPerSecond = newLinearSpeeds.getX();
+			chassisSpeeds.vyMetersPerSecond = newLinearSpeeds.getY();
+			chassisSpeeds.omegaRadiansPerSecond *= SLOW_MODE_MULTIPLIER;
+			
+		}
+		
 		// Update the chassis speeds.
 		this.chassisSpeeds = chassisSpeeds;
 		
@@ -223,16 +248,12 @@ public class Swerve extends SubsystemBase {
 	
 	public void setFieldRelativeHeadingSetpoint(Angle heading) {
 		
-		Pose2d existingPose = this.poseEstimator.getEstimatedPosition();
+		Pose2d existingPose = this.odometry.getPose();
 		
 		this.headingPIDController.setSetpoint(heading.in(Degrees));
 		
-		this.poseEstimator.resetPose(existingPose);
-//		this.odometry.resetPosition(
-//			new Rotation2d(0),
-//			this.getModulePositions(),
-//			this.currentPose
-//		);
+		this.odometry.resetPose(existingPose);
+		
 		
 	}
 	
@@ -240,8 +261,6 @@ public class Swerve extends SubsystemBase {
 	public void periodic() {
 		
 //		Angle heading = this.getFieldRelativeHeading();
-		
-		this.updatePose();
 		
 //		double headingPIDOutput =
 //			this.headingPIDController.calculate(heading.in(Degrees));
@@ -254,135 +273,13 @@ public class Swerve extends SubsystemBase {
 //			this.isHeadingLockEnabled ? headingPIDOutput : this.chassisSpeeds.omegaRadiansPerSecond
 //		);
 		
+		if (!this.shouldUseChassisSpeeds) return;
+		
 		SwerveModuleState[] newModuleStates =
 			this.kinematics.toSwerveModuleStates(this.chassisSpeeds);
 
 		this.applyModuleStates(
 			newModuleStates
-		);
-		
-	}
-	
-	public void updatePose() {
-		
-		this.poseEstimator.update(
-			new Rotation2d(this.getFieldRelativeHeading()),
-			this.getModulePositions()
-		);
-		
-//		this.currentPose = this.odometry.update(
-//			new Rotation2d(this.getFieldRelativeHeading()),
-//			this.getModulePositions()
-//		);
-		
-		double limelightYaw = this.getFieldRelativeHeading().in(Degrees);
-		
-		if (
-			DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) ==
-				DriverStation.Alliance.Red
-		) limelightYaw += 180;
-		
-		for (String limelightName: LIMELIGHTS) {
-			
-			LimelightHelpers.SetRobotOrientation(
-				limelightName,
-				limelightYaw,
-				0,
-				0,
-				0,
-				0,
-				0
-			);
-			
-		}
-		
-		LimelightHelpers.PoseEstimate frontPoseEstimate =
-			LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(FRONT_LIMELIGHT_NAME);
-		LimelightHelpers.PoseEstimate rearPoseEstimate =
-			LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(FRONT_LIMELIGHT_NAME);
-		
-		if (
-			frontPoseEstimate != null &&
-			frontPoseEstimate.tagCount > 0
-		) {
-			
-			int frontTagID = frontPoseEstimate.rawFiducials[0].id;
-			this.updateMostRecentReefTag(AprilTagHelper.getAprilTag(frontTagID));
-			
-			this.poseEstimator.addVisionMeasurement(
-				frontPoseEstimate.pose,
-				frontPoseEstimate.timestampSeconds,
-				VecBuilder.fill(0.5, 0.5, 30)
-			);
-			
-		}
-		
-		if (
-			rearPoseEstimate != null &&
-			rearPoseEstimate.tagCount > 0
-		) {
-			
-			int rearTagID = rearPoseEstimate.rawFiducials[0].id;
-			this.updateMostRecentReefTag(AprilTagHelper.getAprilTag(rearTagID));
-			
-			this.poseEstimator.addVisionMeasurement(
-				rearPoseEstimate.pose,
-				rearPoseEstimate.timestampSeconds,
-				VecBuilder.fill(0.5, 0.5, 30)
-			);
-			
-		}
-		
-//		List<LimelightHelpers.PoseEstimate> poseEstimates = Stream.of(LIMELIGHTS)
-//			.map(LimelightHelpers::getBotPoseEstimate_wpiBlue_MegaTag2)
-//			.filter(x -> x != null && x.tagCount > 0 && x.avgTagDist < 2.5)
-//			.sorted(Comparator.comparingDouble(x -> x.avgTagDist))
-//			.toList();
-//
-//		if (!poseEstimates.isEmpty()) {
-//
-//			LimelightHelpers.PoseEstimate poseEstimate = poseEstimates.get(0);
-//
-//			this.poseEstimator.addVisionMeasurement(
-//				poseEstimate.pose,
-//				poseEstimate.timestampSeconds,
-//				VecBuilder.fill(0.5, 0.5, 30)
-//			);
-//
-//		}
-		
-		this.nearestReefTag = VirtualField.getNearestReefAprilTag(
-			this.poseEstimator.getEstimatedPosition().getTranslation()
-		);
-		
-		this.field.setRobotPose(this.poseEstimator.getEstimatedPosition());
-		this.field.getObject("nearest-april-tag")
-			.setPose(this.nearestReefTag.pose.toPose2d());
-		
-	}
-	
-	protected void updateMostRecentReefTag(AprilTag tag) {
-		
-//		System.out.println("updating most recent reef tag: " + tag.ID);
-	
-		if (Arrays.stream(Swerve.REEF_TAG_IDS).anyMatch((id) -> id == tag.ID)) {
-			
-			this.mostRecentReefTag = tag;
-//			this.field.getObject("most-recent-reef-tag")
-//				.setPose(RobotPoseHelper.getCenteredRobotPoseForReefAprilTag(tag.ID));
-//			this.field.getObject("most-recent-reef-tag-left")
-//				.setPose(RobotPoseHelper.getBranchRobotPoseForReefAprilTag(tag.ID, ReefBranch.LEFT));
-//			this.field.getObject("most-recent-reef-tag-right")
-//				.setPose(RobotPoseHelper.getBranchRobotPoseForReefAprilTag(tag.ID, ReefBranch.RIGHT));
-			
-		}
-	
-	}
-	
-	public AprilTag getNearestReefAprilTag() {
-		
-		return VirtualField.getNearestReefAprilTag(
-			Swerve.this.poseEstimator.getEstimatedPosition().getTranslation()
 		);
 		
 	}
@@ -398,8 +295,63 @@ public class Swerve extends SubsystemBase {
 		
 		builder.addDoubleProperty(
 			"Heading Setpoint",
-			() -> this.headingPIDController.getSetpoint(),
+			this.headingPIDController::getSetpoint,
 			(double headingDegrees) -> this.setFieldRelativeHeadingSetpoint(Degrees.of(headingDegrees))
+		);
+		
+		builder.addDoubleProperty(
+			"Swerve Module Velocity kP",
+			this.modules[0].driveMotorController.configAccessor.closedLoop::getP,
+			(double kP) -> {
+				SparkMaxConfig newConfig = new SparkMaxConfig();
+				newConfig.closedLoop.p(kP);
+				this.getModuleStream().forEach(module ->
+					module.driveMotorController.configure(
+						newConfig,
+						SparkBase.ResetMode.kNoResetSafeParameters,
+						SparkBase.PersistMode.kPersistParameters
+					)
+				);
+			}
+		);
+		
+		builder.addDoubleProperty(
+			"Swerve Module Velocity kD",
+			this.modules[0].driveMotorController.configAccessor.closedLoop::getD,
+			(double kD) -> {
+				SparkMaxConfig newConfig = new SparkMaxConfig();
+				newConfig.closedLoop.d(kD);
+				this.getModuleStream().forEach(module ->
+					module.driveMotorController.configure(
+						newConfig,
+						SparkBase.ResetMode.kNoResetSafeParameters,
+						SparkBase.PersistMode.kPersistParameters
+					)
+				);
+			}
+		);
+		
+		AngularVelocity vortexFreeSpeed = Rotations.per(Minute).of(6784);
+		double driveWheelFreeSpeedRPS = (
+			vortexFreeSpeed.in(RotationsPerSecond) *
+				RobotDimensions.SWERVE_WHEEL_CIRCUMFERENCE.in(Inches)
+		) / RobotDimensions.SWERVE_DRIVE_MOTOR_REDUCTION;
+		double velocityFeedforward = 1 / driveWheelFreeSpeedRPS;
+		
+		builder.addDoubleProperty(
+			"Swerve Module Velocity FF Add",
+			() -> this.modules[0].driveMotorController.configAccessor.closedLoop.getFF() - velocityFeedforward,
+			(double kFF) -> {
+				SparkMaxConfig newConfig = new SparkMaxConfig();
+				newConfig.closedLoop.velocityFF(velocityFeedforward + kFF);
+				this.getModuleStream().forEach(module ->
+					module.driveMotorController.configure(
+						newConfig,
+						SparkBase.ResetMode.kNoResetSafeParameters,
+						SparkBase.PersistMode.kPersistParameters
+					)
+				);
+			}
 		);
 		
 	}
@@ -434,16 +386,24 @@ public class Swerve extends SubsystemBase {
 			);
 			
 			builder.addDoubleProperty(
+				"Chassis Speeds (vXY in inches per second)",
+				() -> this.getLinearVelocity().in(InchesPerSecond),
+				null
+			);
+			
+			builder.addDoubleProperty(
 				"Chassis Speeds (Rotation in degrees per second)",
 				() -> RadiansPerSecond.of(this.chassisSpeeds.omegaRadiansPerSecond).in(DegreesPerSecond),
 				null
 			);
 			
-			builder.addIntegerProperty(
-				"Most Recent Reef Tag",
-				() -> this.mostRecentReefTag == null ? -1 : this.mostRecentReefTag.ID,
-				(id) -> this.mostRecentReefTag = AprilTagHelper.getAprilTag((int) id)
+			builder.addStringProperty(
+				"Field Position",
+				() -> this.odometry.getFieldThird().name(),
+				null
 			);
+			
+			
 			
 		};
 		
@@ -508,6 +468,43 @@ public class Swerve extends SubsystemBase {
 			
 		}
 		
+		public Command xMode(LinearVelocity outwardDriveSpeed) {
+			
+			return Swerve.this.startEnd(
+				() -> {
+					
+					Swerve.this.shouldUseChassisSpeeds = false;
+					
+					Swerve.this.getModuleStream().forEach(module -> {
+						module.updateModuleState(new SwerveModuleState(
+							outwardDriveSpeed,
+							module.config.positionInRobot.getAngle()
+						));
+					});
+					
+				},
+				() -> {
+					
+					Swerve.this.shouldUseChassisSpeeds = true;
+					Swerve.this.stop();
+					
+				}
+			);
+			
+		}
+		
+		public Command xMode() {
+			
+			return this.xMode(InchesPerSecond.of(0));
+			
+		}
+		
+		public Command stop() {
+			
+			return new InstantCommand(Swerve.this::stop, Swerve.this);
+			
+		}
+		
 		public Command drive(
 			Supplier<Translation2d> xyInchesPerSecond,
 			DoubleSupplier rotationDegreesPerSecond,
@@ -519,8 +516,8 @@ public class Swerve extends SubsystemBase {
 				Translation2d xy = xyInchesPerSecond.get();
 				
 				Swerve.this.applyChassisSpeeds(new ChassisSpeeds(
-					InchesPerSecond.of(xy.getX()),
-					InchesPerSecond.of(xy.getY()),
+					xy.getMeasureX().per(Second),
+					xy.getMeasureY().per(Second),
 					DegreesPerSecond.of(rotationDegreesPerSecond.getAsDouble())
 				), fieldRelative);
 				
@@ -528,40 +525,20 @@ public class Swerve extends SubsystemBase {
 			
 		}
 		
-		public Command goToNearestReefPosition(
-			ReefBranch branch,
-			ReefLevel level
+		public Command goToPosition(
+			Supplier<Pose2d> poseSupplier,
+			LinearVelocity maxLinearVelocity,
+			Distance distanceTolerance,
+			Angle angularTolerance,
+			int[] aprilTagFilter
 		) {
-			
-			return this.goToPosition(() -> RobotPoseHelper.getBranchRobotPoseForReefAprilTag(
-				Swerve.this.nearestReefTag.ID,
-				branch,
-				level
-			));
-			
-		}
-		
-		public Command waitUntilAtNearestReefPosition(ReefBranch branch, ReefLevel level) {
-			
-			return this.waitUntilAtPosition(() ->
-				RobotPoseHelper.getBranchRobotPoseForReefAprilTag(
-					Swerve.this.nearestReefTag.ID,
-					branch,
-					level
-				),
-				Inches.of(2),
-				Degrees.of(5)
-			);
-			
-		}
-		
-		public Command goToPosition(Supplier<Pose2d> poseSupplier) {
 			
 			Command command = new Command() {
 				
+//				final double LINEAR_KP = 0.000000005;
 				final double LINEAR_KP = 0.000000001;
 				
-				final double ANGULAR_KP = 1;
+				final double ANGULAR_KP = 8;
 				
 				final AngularVelocity MAX_ANGULAR_VELOCITY = DegreesPerSecond.of(90);
 				
@@ -580,63 +557,86 @@ public class Swerve extends SubsystemBase {
 				@Override
 				public void initialize() {
 					
-					desiredPose = poseSupplier.get();
-					
-					Swerve.this.field.getObject("setpoint").setPose(desiredPose);
-					
 					this.thetaController.enableContinuousInput(-180, 180);
+					this.updateSetpoint();
+					Swerve.this.odometry.vision.setAprilTagFilter(aprilTagFilter);
+					Swerve.this.odometry.setDisplaySetpoint(desiredPose);
+				
+				}
+				
+				void updateSetpoint() {
+					
+					desiredPose = poseSupplier.get();
 					
 					xController.setSetpoint(desiredPose.getMeasureX().in(Inches));
 					yController.setSetpoint(desiredPose.getMeasureY().in(Inches));
 					thetaController.setSetpoint(desiredPose.getRotation().getMeasure().in(Degrees));
+					
+				}
 				
+				Distance getRemainingLinearDistance() {
+					
+					return Meters.of(
+						currentPose.getTranslation()
+							.minus(desiredPose.getTranslation())
+							.getNorm()
+					);
+					
 				}
 				
 				@Override
 				public void execute() {
 					
-					currentPose = Swerve.this.poseEstimator
-						.getEstimatedPosition();
+					Pose2d newCurrentPose = Swerve.this.odometry.getPose();
 					
-					double inchesRemaining = Meters.of(
-						currentPose.getTranslation()
-							.minus(desiredPose.getTranslation())
-							.getNorm()
-					).in(Inches);
+					if (newCurrentPose != null) this.currentPose = newCurrentPose;
 					
-					System.out.println("Distance remaining: " + inchesRemaining + "in");
+					double inchesRemaining = this.getRemainingLinearDistance()
+						.in(Inches);
+					double degreesRemaining = currentPose.getRotation()
+						.minus(desiredPose.getRotation())
+						.getDegrees();
+					
+					System.out.printf(
+						"goToPosition remaining travel: [%.2f inches, %.2f degrees]\n",
+						inchesRemaining,
+						degreesRemaining
+					);
 					
 					double thetaFeed = thetaController.calculate(currentPose.getRotation().getDegrees());
 					Translation2d point = new Translation2d(
-						xController.calculate(currentPose.getMeasureX().in(Inches)),
-						yController.calculate(currentPose.getMeasureY().in(Inches))
+						Inches.of(xController.calculate(currentPose.getMeasureX().in(Inches))),
+						Inches.of(yController.calculate(currentPose.getMeasureY().in(Inches)))
 					);
 					
-					
-					
-					LinearVelocity maxVelocity = InchesPerSecond.of(Math.min(
-						inchesRemaining > 12
-							? (inchesRemaining * 3) - 9
-							: inchesRemaining > 3
-								? inchesRemaining + 15
-								: inchesRemaining * 6,
-						60
-					));
+					double maxAcceleration = 96;
+					double maxDeceleration = 96;
+					double maxVelocityToStop = Math.sqrt(2 * maxDeceleration * inchesRemaining);
+					double currentVelocity = Swerve.this.getLinearVelocity().in(InchesPerSecond);
+					double desiredVelocity = currentVelocity < maxVelocityToStop
+						? Math.min(currentVelocity + maxAcceleration * 0.02, maxVelocityToStop)
+						: Math.max(currentVelocity - maxDeceleration * 0.02, maxVelocityToStop);
 					
 					point = point.div(
 						point.getNorm() /
-						maxVelocity.in(InchesPerSecond)
+						InchesPerSecond.of(desiredVelocity).in(MetersPerSecond)
 					);
 					
-					if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
-						
-						point = point.times(-1);
-						
-					}
+					point = new Translation2d(
+						InchesPerSecond.of(desiredVelocity).in(MetersPerSecond),
+						point.getAngle()
+					);
+					
+					System.out.printf("linear velocity: %.2f\n", MetersPerSecond.of(point.getNorm()).in(InchesPerSecond));
+					
+					boolean needsInverting = DriverStation.Alliance.Red ==
+						DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
+					
+					if (needsInverting) point = point.times(-1);
 					
 					Swerve.this.applyChassisSpeeds(new ChassisSpeeds(
-						InchesPerSecond.of(point.getX()),
-						InchesPerSecond.of(point.getY()),
+						MetersPerSecond.of(point.getX()),
+						MetersPerSecond.of(point.getY()),
 						DegreesPerSecond.of(Math.min(thetaFeed, this.MAX_ANGULAR_VELOCITY.in(DegreesPerSecond)))
 					), true);
 					
@@ -645,21 +645,23 @@ public class Swerve extends SubsystemBase {
 				@Override
 				public boolean isFinished() {
 					
-//					Distance distanceTolerance = Inches.of(0.125);
-//
-//					return (
-//						currentPose.getMeasureX().isNear(desiredPose.getMeasureX(), distanceTolerance) &&
-//						currentPose.getMeasureY().isNear(desiredPose.getMeasureY(), distanceTolerance)
-//					);
+					Pose2d relativePose = currentPose.relativeTo(desiredPose);
+					Distance linearDistance = Meters.of(relativePose.getTranslation().getNorm());
 					
-					return false;
+					if (linearDistance.lt(Inches.of(0))) linearDistance = linearDistance.times(-1);
+					
+					return (
+						linearDistance.lte(distanceTolerance) &&
+						currentPose.getRotation().getMeasure().isNear(desiredPose.getRotation().getMeasure(), angularTolerance)
+					);
 					
 				}
 				
 				@Override
 				public void end(boolean interrupted) {
 					
-					Swerve.this.field.getObject("setpoint").setPoses();
+					Swerve.this.odometry.removeDisplaySetpoint();
+					Swerve.this.odometry.vision.resetAprilTagFilter();
 					Swerve.this.applyChassisSpeeds(new ChassisSpeeds(0, 0, 0), false);
 					
 				}
@@ -672,6 +674,30 @@ public class Swerve extends SubsystemBase {
 			
 		}
 		
+		public Command goToRelativePosition(
+			Supplier<Pose2d> poseSupplier,
+			LinearVelocity maxLinearVelocity,
+			Distance distanceTolerance,
+			Angle angularTolerance
+		) {
+			
+			return this.goToPosition(new Supplier<Pose2d>() {
+				
+				Pose2d result;
+				
+				@Override
+				public Pose2d get() {
+					
+					if (this.result == null) this.result = poseSupplier.get();
+					
+					return this.result;
+					
+				}
+				
+			}, maxLinearVelocity, distanceTolerance, angularTolerance, null);
+			
+		}
+		
 		public Command waitUntilAtPosition(
 			Supplier<Pose2d> desiredPoseSupplier,
 			Distance distanceTolerance,
@@ -681,7 +707,7 @@ public class Swerve extends SubsystemBase {
 			return edu.wpi.first.wpilibj2.command.Commands.waitUntil(() -> {
 				
 				Pose2d desiredPose = desiredPoseSupplier.get();
-				Pose2d currentPose = Swerve.this.poseEstimator.getEstimatedPosition();
+				Pose2d currentPose = Swerve.this.odometry.getPose();
 				
 				return (
 					currentPose.getMeasureX().isNear(desiredPose.getMeasureX(), distanceTolerance) &&
@@ -690,6 +716,49 @@ public class Swerve extends SubsystemBase {
 				);
 				
 			});
+			
+		}
+		
+		public Command goToPosition2(Trajectory trajectory) {
+			
+			double linearKp = 0.000000002;
+			
+			return new SwerveControllerCommand(
+				trajectory,
+				Swerve.this.odometry::getPose,
+				Swerve.this.kinematics,
+				new PIDController(linearKp, 0, 0),
+				new PIDController(linearKp, 0, 0),
+				new ProfiledPIDController(5, 0, 0, new TrapezoidProfile.Constraints(
+					180,
+					90
+				)),
+				Swerve.this::applyModuleStates,
+				Swerve.this
+			).andThen(this.stop());
+			
+		}
+		
+		public Command goToPosition2(Pose2d pose) {
+			
+			LinearVelocity maxVelocity = InchesPerSecond.of(80);
+			LinearAcceleration maxAcceleration = InchesPerSecond.per(Second).of(160);
+			
+			TrajectoryConfig config = new TrajectoryConfig(
+				maxVelocity.in(MetersPerSecond),
+				maxAcceleration.in(MetersPerSecondPerSecond)
+			);
+			
+			return new DeferredCommand(() -> {
+				
+				Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
+					List.of(Swerve.this.odometry.getPose(), pose),
+					config
+				);
+				
+				return this.goToPosition2(trajectory);
+				
+			}, Set.of(Swerve.this));
 			
 		}
 	

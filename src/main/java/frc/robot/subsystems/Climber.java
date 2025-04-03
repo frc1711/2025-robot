@@ -52,6 +52,8 @@ public class Climber extends SubsystemBase {
 	
 	protected final DutyCycleEncoder encoder;
 	
+	protected boolean isEncoderReady;
+	
 	protected final ProfiledPIDController pidController;
 	
 	public final Commands commands;
@@ -62,6 +64,7 @@ public class Climber extends SubsystemBase {
 		
 		this.motorController = new TalonFX(CANDevice.CLIMBER_WINCH_MOTOR_CONTROLLER.id);
 		this.encoder = new DutyCycleEncoder(DIODevice.CLIMBER_ENCODER.channel);
+		this.isEncoderReady = false;
 		this.pidController = new ProfiledPIDController(
 			Climber.kP,
 			Climber.kI,
@@ -106,11 +109,16 @@ public class Climber extends SubsystemBase {
 	@Override
 	public void periodic() {
 		
-		this.motorController.setVoltage(MathUtil.clamp(
-			this.pidController.calculate(this.getAngle().in(Degrees)),
-			-13,
-			6
-		));
+//		double pidVoltage =
+//			this.pidController.calculate(this.getAngle().in(Degrees));
+//
+//		this.motorController.setVoltage(MathUtil.clamp(pidVoltage, -13, 6));
+		
+		if (this.getAngle().lt(Degrees.of(-80))) return;
+		
+		this.motorController.setVoltage(
+			this.pidController.calculate(this.getAngle().in(Degrees))
+		);
 		
 	}
 	
@@ -154,12 +162,6 @@ public class Climber extends SubsystemBase {
 				() -> Climber.this.pidController.setGoal(angle.in(Degrees)),
 				() -> Climber.this.pidController.setGoal(CLIMBED_ANGLE.in(Degrees))
 			);
-			
-//			return Climber.this.runOnce(
-//				() -> Climber.this.pidController.setGoal(angle.in(Degrees))
-//			).andThen(edu.wpi.first.wpilibj2.command.Commands.waitUntil(
-//				Climber.this.triggers.isAtAngle(angle)
-//			));
 			
 		}
 		

@@ -1,21 +1,23 @@
 package frc.robot.controlschemes;
 
+import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.RobotContainer;
-import frc.robot.configuration.ReefBranch;
+import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.ReefLevel;
-import frc.robot.configuration.ReefScoringMode;
+import frc.robot.configuration.ReefAlignmentMode;
 import frc.robot.subsystems.Swerve;
-import frc.robot.util.DoubleSupplierBuilder;
-import frc.robot.util.ElevatorPosition;
-import frc.robot.util.Point;
-import frc.robot.util.PointSupplierBuilder;
+import frc.robot.util.*;
 
 import java.util.Map;
 
@@ -60,8 +62,8 @@ public class ControlsSchemeBuilder {
 		CommandXboxController controller
 	) {
 		
-		Time timeToMaxVelocity = Seconds.of(0.125);
-		LinearVelocity maxLinearVelocity = InchesPerSecond.of(300);
+		Time timeToMaxVelocity = Seconds.of(0.5);
+		LinearVelocity maxLinearVelocity = InchesPerSecond.of(100);
 		AngularVelocity maxAngularVelocity = DegreesPerSecond.of(360);
 		Swerve swerve = this.robot.swerve;
 		
@@ -71,7 +73,7 @@ public class ControlsSchemeBuilder {
 				.withClamp(-1, 1)
 				.withScaledDeadband(JOYSTICK_DEADBAND)
 				.withExponentialCurve(LINEAR_INPUT_SMOOTHING_POWER)
-				.withScaling(maxLinearVelocity.in(InchesPerSecond))
+				.withScaling(maxLinearVelocity.in(MetersPerSecond))
 				.withMaximumSlewRate(maxLinearVelocity.div(timeToMaxVelocity).in(InchesPerSecond.per(Second))),
 			DoubleSupplierBuilder.fromRightX(controller)
 				.withScaling(-1)
@@ -87,14 +89,43 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
+	public ControlsSchemeBuilder useAButtonForSlowMode(
+		CommandXboxController controller
+	) {
+		
+		controller.a().onTrue(new InstantCommand(() -> this.robot.swerve.isSlowModeEnabled = true));
+		controller.a().onFalse(new InstantCommand(() -> this.robot.swerve.isSlowModeEnabled = false));
+		
+		return this;
+		
+	}
+	
+	public ControlsSchemeBuilder useYButtonForCoastMode(
+		CommandXboxController controller
+	) {
+		
+		controller.y().whileTrue(
+			new InstantCommand(() -> this.robot.swerve.setDriveMotorIdleState(SparkBaseConfig.IdleMode.kCoast))
+				.andThen(this.robot.swerve.commands.xMode(InchesPerSecond.of(-15)))
+		);
+		
+		controller.y().onFalse(
+			new InstantCommand(() -> this.robot.swerve.setDriveMotorIdleState(SparkBaseConfig.IdleMode.kBrake))
+		);
+		
+		return this;
+		
+	}
+	
 	public ControlsSchemeBuilder useDPadForRobotRelativeDriving(CommandXboxController controller) {
 		
 		LinearVelocity speed = FeetPerSecond.of(1.5);
 		
-		controller.povUp().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(speed.in(InchesPerSecond), 0), () -> 0, false));
-		controller.povRight().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(0, -speed.in(InchesPerSecond)), () -> 0, false));
-		controller.povLeft().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(0, speed.in(InchesPerSecond)), () -> 0, false));
-		controller.povDown().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(-speed.in(InchesPerSecond), 0), () -> 0, false));
+		controller.povUp().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(speed.in(MetersPerSecond), 0), () -> 0, false));
+		controller.povDown().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(-speed.in(MetersPerSecond), 0), () -> 0, false));
+		
+		controller.povLeft().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(0, speed.in(MetersPerSecond)), () -> 0, false));
+		controller.povRight().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(0, -speed.in(MetersPerSecond)), () -> 0, false));
 		
 		return this;
 		
@@ -110,11 +141,29 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
+	public ControlsSchemeBuilder useTriggersToLoad(CommandXboxController controller) {
+		
+		Command goToNearestCoralStation = this.robot.swerve.commands.goToPosition(() ->
+			RobotPoseBuilder.getCoralStationLoadingPose(
+				robot.odometry.getFieldThird().getCoralStationAprilTagID()
+			).toPose(),
+			InchesPerSecond.of(80),
+			Inches.of(0.5),
+			Degrees.of(2),
+			null
+		);
+		
+		controller.leftTrigger(TRIGGER_THRESHOLD)
+			.and(controller.rightTrigger(TRIGGER_THRESHOLD))
+			.whileTrue(goToNearestCoralStation);
+		
+		return this;
+		
+	}
+	
 	public ControlsSchemeBuilder useStartButtonToCalibrateElevator(CommandXboxController controller) {
 		
-		controller.start().onTrue(
-			this.robot.elevator.commands.calibrate()
-		);
+		controller.start().onTrue(this.robot.elevator.commands.calibrate());
 		
 		return this;
 		
@@ -124,23 +173,23 @@ public class ControlsSchemeBuilder {
 		
 		controller.b().whileTrue(this.robot.complexCommands.scoreOnL1());
 		
-		controller.a().whileTrue(new SelectCommand<ReefScoringMode>(Map.ofEntries(
-			Map.entry(ReefScoringMode.MANUAL, this.robot.complexCommands.scoreOnL2()),
-			Map.entry(ReefScoringMode.LEFT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L2, ReefBranch.LEFT)),
-			Map.entry(ReefScoringMode.RIGHT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L2, ReefBranch.RIGHT))
-		), () -> ReefScoringMode.ACTIVE));
+		controller.a().whileTrue(new SelectCommand<ReefAlignmentMode>(Map.ofEntries(
+			Map.entry(ReefAlignmentMode.MANUAL, this.robot.complexCommands.scoreOnL2()),
+			Map.entry(ReefAlignmentMode.LEFT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L2, ReefAlignment.LEFT)),
+			Map.entry(ReefAlignmentMode.RIGHT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L2, ReefAlignment.RIGHT))
+		), () -> ReefAlignmentMode.ACTIVE));
 		
-		controller.x().whileTrue(new SelectCommand<ReefScoringMode>(Map.ofEntries(
-			Map.entry(ReefScoringMode.MANUAL, this.robot.complexCommands.scoreOnL3()),
-			Map.entry(ReefScoringMode.LEFT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L3, ReefBranch.LEFT)),
-			Map.entry(ReefScoringMode.RIGHT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L3, ReefBranch.RIGHT))
-		), () -> ReefScoringMode.ACTIVE));
+		controller.x().whileTrue(new SelectCommand<ReefAlignmentMode>(Map.ofEntries(
+			Map.entry(ReefAlignmentMode.MANUAL, this.robot.complexCommands.scoreOnL3()),
+			Map.entry(ReefAlignmentMode.LEFT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L3, ReefAlignment.LEFT)),
+			Map.entry(ReefAlignmentMode.RIGHT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L3, ReefAlignment.RIGHT))
+		), () -> ReefAlignmentMode.ACTIVE));
 		
-		controller.y().whileTrue(new SelectCommand<ReefScoringMode>(Map.ofEntries(
-			Map.entry(ReefScoringMode.MANUAL, this.robot.complexCommands.scoreOnL4()),
-			Map.entry(ReefScoringMode.LEFT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L4, ReefBranch.LEFT)),
-			Map.entry(ReefScoringMode.RIGHT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L4, ReefBranch.RIGHT))
-		), () -> ReefScoringMode.ACTIVE));
+		controller.y().whileTrue(new SelectCommand<ReefAlignmentMode>(Map.ofEntries(
+			Map.entry(ReefAlignmentMode.MANUAL, this.robot.complexCommands.scoreOnL4()),
+			Map.entry(ReefAlignmentMode.LEFT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L4, ReefAlignment.LEFT)),
+			Map.entry(ReefAlignmentMode.RIGHT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L4, ReefAlignment.RIGHT))
+		), () -> ReefAlignmentMode.ACTIVE));
 		
 		return this;
 		
@@ -150,9 +199,9 @@ public class ControlsSchemeBuilder {
 		CommandXboxController controller
 	) {
 		
-		controller.povDown().onTrue(new InstantCommand(() -> ReefScoringMode.setMode(ReefScoringMode.MANUAL)));
-		controller.povLeft().onTrue(new InstantCommand(() -> ReefScoringMode.setMode(ReefScoringMode.LEFT)));
-		controller.povRight().onTrue(new InstantCommand(() -> ReefScoringMode.setMode(ReefScoringMode.RIGHT)));
+		controller.povDown().onTrue(new InstantCommand(() -> ReefAlignmentMode.setMode(ReefAlignmentMode.MANUAL)));
+		controller.povLeft().onTrue(new InstantCommand(() -> ReefAlignmentMode.setMode(ReefAlignmentMode.LEFT)));
+		controller.povRight().onTrue(new InstantCommand(() -> ReefAlignmentMode.setMode(ReefAlignmentMode.RIGHT)));
 		
 		return this;
 		

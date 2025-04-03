@@ -9,6 +9,7 @@ import com.revrobotics.spark.*;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -25,7 +26,7 @@ import static edu.wpi.first.units.Units.*;
 
 public class SwerveModule extends SubsystemBase {
 	
-	protected final SwerveModuleConfiguration config;
+	public final SwerveModuleConfiguration config;
 	
 	/**
 	 * The motor controller that controls the steer motor of this module.
@@ -149,8 +150,7 @@ public class SwerveModule extends SubsystemBase {
 		
 		config.closedLoop
 			.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder)
-//			.pid(1, 0, 56.166)
-			.pid(0.05, 0, 0)
+			.pid(0.01, 0, 0)
 //			.velocityFF(1/0.47869)
 			.outputRange(-1, 1)
 			.positionWrappingEnabled(true)
@@ -177,7 +177,7 @@ public class SwerveModule extends SubsystemBase {
 		
 	}
 	
-	protected static SparkMaxConfig getDriveMotorControllerConfig() {
+	public static SparkMaxConfig getDriveMotorControllerConfig() {
 		
 		SparkMaxConfig config = new SparkMaxConfig();
 		
@@ -201,9 +201,14 @@ public class SwerveModule extends SubsystemBase {
 		
 		config.closedLoop
 			.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
-			.pid(0.01, 0, 0)
-			.velocityFF(velocityFeedforward + 0.002)
-			.outputRange(-1, 1);
+			.pid(0.01, 0, 0.1)
+//			.velocityFF(velocityFeedforward + 0.002)
+//			.velocityFF(velocityFeedforward + 0.003)
+			.velocityFF(velocityFeedforward + 0.001)
+			.outputRange(-1, 1)
+			.maxMotion
+				.maxVelocity(80)
+				.maxAcceleration(160);
 		
 		return config;
 		
@@ -382,6 +387,15 @@ public class SwerveModule extends SubsystemBase {
 		builder.addDoubleProperty(
 			moduleName + " Velocity (inches per second)",
 			() -> this.getVelocity().in(InchesPerSecond),
+			null
+		);
+		
+//		LinearFilter velocityFilter = LinearFilter.singlePoleIIR(0.1, 0.02);
+		LinearFilter velocityFilter = LinearFilter.movingAverage(5);
+		
+		builder.addDoubleProperty(
+			moduleName + " Velocity Avg. (inches per second)",
+			() -> velocityFilter.calculate(this.getVelocity().in(InchesPerSecond)),
 			null
 		);
 		

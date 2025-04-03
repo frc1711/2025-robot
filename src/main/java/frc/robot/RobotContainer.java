@@ -5,12 +5,19 @@
 package frc.robot;
 
 import com.ctre.phoenix6.Orchestra;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import frc.robot.configuration.StatusLightsPattern;
 import frc.robot.controlschemes.ControlsScheme;
 import frc.robot.controlschemes.StandardTeleoperativeControlsScheme;
+import frc.robot.controlschemes.TestingTeleoperativeControlsScheme;
 import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.util.RaptorsOdometry;
+import frc.robot.util.RobotPoseBuilder;
+
+import static edu.wpi.first.units.Units.Inches;
 
 public class RobotContainer {
   
@@ -27,7 +34,11 @@ public class RobotContainer {
   
   public final Swerve swerve;
   
+  public final Vision vision;
+  
   public final StatusLights lights;
+  
+  public final RaptorsOdometry odometry;
   
   public final Orchestra orchestra;
   
@@ -43,13 +54,22 @@ public class RobotContainer {
     this.elevator = new Elevator();
     this.intake = new Intake();
     this.mailbox = new Mailbox();
-    this.swerve = new Swerve();
+    this.odometry = new RaptorsOdometry();
+    this.swerve = new Swerve(this.odometry);
+    this.vision = new Vision(
+        this.swerve::getFieldRelativeHeading,
+        this.swerve::getLinearVelocity,
+        this.swerve::getAngularVelocity
+    );
     this.lights = new StatusLights();
+    
     this.orchestra = new Orchestra();
     this.complexCommands = new ComplexCommands(this);
     this.controller1 = new CommandXboxController(0);
     this.controller2 = new CommandXboxController(1);
     
+    this.odometry.injectVision(this.vision);
+    this.odometry.injectSwerve(this.swerve);
     this.lights.set(StatusLightsPattern.SOLID_COLORS_WHITE);
     
     Shuffleboard.getTab("Subsystems").add("Climber", this.climber);
@@ -79,6 +99,12 @@ public class RobotContainer {
         this.controller1,
         this.controller2
     );
+    
+//    this.controller1.povDown().whileTrue(this.swerve.commands.drive(
+//        () -> new Translation2d(Inches.of(40), Inches.of(0)),
+//        () -> 0,
+//        false
+//    ).withTimeout(15));
   
   }
   

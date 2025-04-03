@@ -21,6 +21,9 @@ public class ElevatorPosition {
 		ElevatorPosition.fromStage1TravelOffset(MAXIMUM_STAGE_1_TRAVEL_OFFSET);
 	
 	public static final ElevatorPosition RESTING = MINIMUM;
+//		ElevatorPosition.fromStage1TravelOffset(
+//			MINIMUM_STAGE_1_TRAVEL_OFFSET.minus(Inches.of(0.05))
+//		);
 	
 	public static final ElevatorPosition L2_ALGAE_REMOVAL =
 		ElevatorPosition.fromUpperMailboxHeight(Inches.of(39));
@@ -40,58 +43,23 @@ public class ElevatorPosition {
 	public static final ElevatorPosition L2_SCORING = RESTING;
 	
 	public static final ElevatorPosition L3_SCORING =
-		ElevatorPosition.fromUpperMailboxHeight(Inches.of(50));
+//		ElevatorPosition.fromUpperMailboxHeight(Inches.of(50));
+		ElevatorPosition.fromUpperMailboxHeight(Inches.of(49));
 	
 	public static final ElevatorPosition L4_SCORING =
-		ElevatorPosition.fromUpperMailboxHeight(Inches.of(75));
+//		ElevatorPosition.fromUpperMailboxHeight(Inches.of(75));
+		ElevatorPosition.fromUpperMailboxHeight(Inches.of(74));
 	
 	public static final ElevatorPosition L4_DISTANT_SCORING =
 		ElevatorPosition.fromUpperMailboxHeight(Inches.of(80));
 	
 	public static final ElevatorPosition L4_TIP =
-		ElevatorPosition.fromUpperMailboxHeight(Inches.of(81));
+//		ElevatorPosition.fromUpperMailboxHeight(Inches.of(83));
+		ElevatorPosition.fromUpperMailboxHeight(Inches.of(82));
 	
 	protected final Distance stage1Offset;
 	
 	protected ElevatorPosition(Distance stage1Offset) {
-		
-//		if (stage1Offset.lt(MINIMUM_STAGE_1_TRAVEL_OFFSET)) {
-//
-//			try {
-//
-//				throw new Exception(String.format(
-//					"Attempted to create an elevator position with a stage 1 " +
-//						"travel offset less than the minimum (minimum:" +
-//						"%.3f\", requested: %.3f\").",
-//					MINIMUM_STAGE_1_TRAVEL_OFFSET.in(Inches),
-//					stage1Offset.in(Inches)
-//				));
-//
-//			} catch (Exception e) {
-//
-//				throw new RuntimeException(e);
-//
-//			}
-//
-//		} else if (stage1Offset.gt(MAXIMUM_STAGE_1_TRAVEL_OFFSET)) {
-//
-//			try {
-//
-//				throw new Exception(String.format(
-//					"Attempted to create an elevator position with a stage 1 " +
-//						"travel offset greater than the maximum (maximum: " +
-//						"%.3f\", requested: %.3f\").",
-//					MAXIMUM_STAGE_1_TRAVEL_OFFSET.in(Inches),
-//					stage1Offset.in(Inches)
-//				));
-//
-//			} catch (Exception e) {
-//
-//				throw new RuntimeException(e);
-//
-//			}
-//
-//		}
 		
 		this.stage1Offset = stage1Offset;
 		
