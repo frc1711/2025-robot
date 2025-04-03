@@ -45,6 +45,7 @@ public class Robot extends TimedRobot {
     
     Auton.initializeShuffleboardSelector();
     ReefAlignmentMode.setMode(ReefAlignmentMode.DEFAULT);
+    this.robotContainer.swerve.calibrateFieldRelativeHeading(Degrees.of(180));
     
   }
 
@@ -64,7 +65,6 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     
-    this.robotContainer.swerve.calibrateFieldRelativeHeading(Degrees.of(180));
     this.autonCommand = Auton.runSelectedAuton(this.robotContainer);
     
   }
