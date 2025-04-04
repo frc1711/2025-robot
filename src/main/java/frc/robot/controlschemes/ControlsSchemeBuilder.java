@@ -63,7 +63,7 @@ public class ControlsSchemeBuilder {
 	) {
 		
 		Time timeToMaxVelocity = Seconds.of(0.5);
-		LinearVelocity maxLinearVelocity = InchesPerSecond.of(100);
+		LinearVelocity maxLinearVelocity = InchesPerSecond.of(150);
 		AngularVelocity maxAngularVelocity = DegreesPerSecond.of(360);
 		Swerve swerve = this.robot.swerve;
 		
