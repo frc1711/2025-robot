@@ -19,8 +19,8 @@ import static edu.wpi.first.units.Units.Meters;
 public class Vision {
 	
 	protected static final String[] LIMELIGHTS = new String[] {
-		"limelight-left",
-		"limelight-right"
+		"limelight-left", // IP: 10.17.11.12
+		"limelight-right" // IP: 10.17.11.11
 	};
 	
 	protected static final int[] APRIL_TAG_IDS_TO_USE = {
