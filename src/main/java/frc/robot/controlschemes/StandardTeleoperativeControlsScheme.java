@@ -15,7 +15,7 @@ public class StandardTeleoperativeControlsScheme implements ControlsScheme {
 		(new ControlsSchemeBuilder(robotContainer))
 			.configureDefaultRobotCommands()
 			.useControllerJoysticksForDriving(controller1)
-			.useAButtonForSlowMode(controller1)
+			.useRBButtonForSlowMode(controller1)
 			.useYButtonForCoastMode(controller1)
 			.useTriggersToLoad(controller1)
 			.useDPadForRobotRelativeDriving(controller1)

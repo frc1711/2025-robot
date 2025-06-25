@@ -89,12 +89,12 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder useAButtonForSlowMode(
+	public ControlsSchemeBuilder useRBButtonForSlowMode(
 		CommandXboxController controller
 	) {
 		
-		controller.a().onTrue(new InstantCommand(() -> this.robot.swerve.isSlowModeEnabled = true));
-		controller.a().onFalse(new InstantCommand(() -> this.robot.swerve.isSlowModeEnabled = false));
+		controller.rightBumper().onTrue(new InstantCommand(() -> this.robot.swerve.isSlowModeEnabled = true));
+		controller.rightBumper().onFalse(new InstantCommand(() -> this.robot.swerve.isSlowModeEnabled = false));
 		
 		return this;
 		
