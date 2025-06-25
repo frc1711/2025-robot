@@ -119,7 +119,8 @@ public class ComplexCommands {
 		Supplier<Pose2d> scoringPoseSupplier = () ->
 			RobotPoseBuilder.getReefScoringPose(reefTagID.getAsInt(), branch)
 				.withRobotRelativeTranslation(new Translation2d(
-					Inches.of(level == ReefLevel.L4 ? -1.75 : 0),
+//					Inches.of(level == ReefLevel.L4 ? -1.75 : 0),
+					Inches.of(0),
 					Inches.of(0)
 				))
 				.toPose();
@@ -143,6 +144,19 @@ public class ComplexCommands {
 			.until(robot.intake.triggers.isCoralInUpperIntake().negate().and(robot.intake.triggers.isCoralInLowerIntake().negate()));
 
 		if (level == ReefLevel.L4) {
+			
+//			goToScoringPosition = goToScoringPosition.andThen(
+//
+//			);
+			
+			scoreCoral = this.robot.swerve.commands.drive(
+					() -> new Translation2d(Inches.of(-15), Inches.of(0)),
+					() -> 0,
+					false
+				).withTimeout(0.25)
+				.finallyDo(this.robot.swerve::stop).andThen(
+					scoreCoral
+				);
 			
 			scoreCoral = scoreCoral.andThen(
 				this.robot.elevator.commands.goTo(ElevatorPosition.L4_TIP)
