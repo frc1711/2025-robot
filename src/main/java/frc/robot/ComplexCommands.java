@@ -61,7 +61,6 @@ public class ComplexCommands {
 			this.robot.elevator.commands.goTo(position);
 		Command waitForElevatorToMoveToPosition =
 			Commands.waitUntil(this.robot.elevator.triggers.isAtPosition(position));
-			this.robot.elevator.commands.waitToReachHeight(position);
 		Command shoot = this.robot.mailbox.commands.feed(speed).withTimeout(shootTime);
 		
 		return moveElevatorToPosition
