@@ -39,8 +39,10 @@ import static edu.wpi.first.units.Units.*;
 
 public class Swerve extends SubsystemBase {
 	
-	protected static final double SLOW_MODE_MULTIPLIER = 0.5;
-	
+	protected static final double SLOW_MODE_TRANSLATION_MULTIPLIER = 0.5;
+
+	protected static final double SLOW_MODE_ROTATION_MULTIPLIER = 0.25;
+
 	protected final SwerveModule[] modules;
 	
 	protected final PIDController headingPIDController;
@@ -231,13 +233,13 @@ public class Swerve extends SubsystemBase {
 			);
 			
 			Translation2d newLinearSpeeds = new Translation2d(
-				originalLinearSpeeds.getNorm() * Swerve.SLOW_MODE_MULTIPLIER,
+				originalLinearSpeeds.getNorm() * Swerve.SLOW_MODE_TRANSLATION_MULTIPLIER,
 				originalLinearSpeeds.getAngle()
 			);
 			
 			chassisSpeeds.vxMetersPerSecond = newLinearSpeeds.getX();
 			chassisSpeeds.vyMetersPerSecond = newLinearSpeeds.getY();
-			chassisSpeeds.omegaRadiansPerSecond *= SLOW_MODE_MULTIPLIER;
+			chassisSpeeds.omegaRadiansPerSecond *= Swerve.SLOW_MODE_ROTATION_MULTIPLIER;
 			
 		}
 		
