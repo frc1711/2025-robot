@@ -94,17 +94,17 @@ public class ComplexCommands {
 	
 	protected Command simpleScore(ElevatorPosition position, double speed, double shootTime) {
 
-		Command cancelSwerve = new InstantCommand(() -> this.robot.swerve.getCurrentCommand().cancel());
+		Command drive = this.drive();
 		Command moveElevatorToPosition =
 			this.robot.elevator.commands.goTo(position);
 		Command waitForElevatorToMoveToPosition =
 			Commands.waitUntil(this.robot.elevator.triggers.isAtPosition(position));
 		Command shoot = this.robot.mailbox.commands.feed(speed).withTimeout(shootTime);
-		
-		return cancelSwerve.andThen(moveElevatorToPosition)
-			.withDeadline(waitForElevatorToMoveToPosition.andThen(shoot))
+
+		return drive
+			.alongWith(moveElevatorToPosition.withDeadline(waitForElevatorToMoveToPosition.andThen(shoot)))
 			.finallyDo(() -> this.robot.lights.set(StatusLightsPattern.SOLID_COLORS_WHITE));
-		
+
 	}
 	
 	public Command unloadMailbox() {
