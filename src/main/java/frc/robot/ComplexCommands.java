@@ -2,14 +2,17 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.ReefLevel;
 import frc.robot.configuration.StatusLightsPattern;
-import frc.robot.util.ElevatorPosition;
-import frc.robot.util.LogCommand;
-import frc.robot.util.RobotPoseBuilder;
+import frc.robot.subsystems.Swerve;
+import frc.robot.util.*;
 
 import java.util.Map;
 import java.util.function.IntSupplier;
@@ -25,6 +28,41 @@ public class ComplexCommands {
 		
 		this.robot = robot;
 		
+	}
+
+	public Command drive() {
+
+		return this.drive(this.robot.controller1);
+
+	}
+
+	public Command drive(CommandXboxController controller) {
+
+		double joystickDeadband = 0.1;
+		double linearInputPowerSmoothing = 3;
+		Time timeToMaxVelocity = Seconds.of(0.5);
+		LinearVelocity maxLinearVelocity = InchesPerSecond.of(100);
+		AngularVelocity maxAngularVelocity = DegreesPerSecond.of(240);
+		Swerve swerve = this.robot.swerve;
+
+		return swerve.commands.drive(
+				PointSupplierBuilder.fromLeftJoystick(controller)
+						.normalizeXboxJoystickToNWU()
+						.withClamp(-1, 1)
+						.withScaledDeadband(joystickDeadband)
+						.withExponentialCurve(linearInputPowerSmoothing)
+						.withScaling(maxLinearVelocity.in(MetersPerSecond))
+						.withMaximumSlewRate(maxLinearVelocity.div(timeToMaxVelocity).in(InchesPerSecond.per(Second))),
+				DoubleSupplierBuilder.fromRightX(controller)
+						.withScaling(-1)
+						.withClamp(-1, 1)
+						.withScaledDeadband(joystickDeadband)
+						.withExponentialCurve(linearInputPowerSmoothing)
+						.withScaling(maxAngularVelocity.in(DegreesPerSecond))
+						.withMaximumSlewRate(maxAngularVelocity.div(timeToMaxVelocity).in(DegreesPerSecond.per(Second))),
+				true
+		).finallyDo(swerve::stop);
+
 	}
 	
 	public Command autofeedMailbox() {

@@ -1,13 +1,8 @@
 package frc.robot.controlschemes;
 
-import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.config.SparkBaseConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
@@ -16,7 +11,6 @@ import frc.robot.RobotContainer;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.ReefLevel;
 import frc.robot.configuration.ReefAlignmentMode;
-import frc.robot.subsystems.Swerve;
 import frc.robot.util.*;
 
 import java.util.Map;
@@ -30,16 +24,6 @@ public class ControlsSchemeBuilder {
 	 * considered to be pressed.
 	 */
 	protected static final double TRIGGER_THRESHOLD = 0.5;
-	
-	/**
-	 * The deadband to apply to the joysticks of the controller.
-	 */
-	protected static final double JOYSTICK_DEADBAND = 0.1;
-	
-	/**
-	 * The power to raise the input of the joysticks to for smoothing.
-	 */
-	protected static final double LINEAR_INPUT_SMOOTHING_POWER = 3;
 	
 	protected final RobotContainer robot;
 	
@@ -62,28 +46,7 @@ public class ControlsSchemeBuilder {
 		CommandXboxController controller
 	) {
 		
-		Time timeToMaxVelocity = Seconds.of(0.5);
-		LinearVelocity maxLinearVelocity = InchesPerSecond.of(100);
-		AngularVelocity maxAngularVelocity = DegreesPerSecond.of(360);
-		Swerve swerve = this.robot.swerve;
-		
-		swerve.setDefaultCommand(swerve.commands.drive(
-			PointSupplierBuilder.fromLeftJoystick(controller)
-				.normalizeXboxJoystickToNWU()
-				.withClamp(-1, 1)
-				.withScaledDeadband(JOYSTICK_DEADBAND)
-				.withExponentialCurve(LINEAR_INPUT_SMOOTHING_POWER)
-				.withScaling(maxLinearVelocity.in(MetersPerSecond))
-				.withMaximumSlewRate(maxLinearVelocity.div(timeToMaxVelocity).in(InchesPerSecond.per(Second))),
-			DoubleSupplierBuilder.fromRightX(controller)
-				.withScaling(-1)
-				.withClamp(-1, 1)
-				.withScaledDeadband(JOYSTICK_DEADBAND)
-				.withExponentialCurve(LINEAR_INPUT_SMOOTHING_POWER)
-				.withScaling(maxAngularVelocity.in(DegreesPerSecond))
-				.withMaximumSlewRate(maxAngularVelocity.div(timeToMaxVelocity).in(DegreesPerSecond.per(Second))),
-			true
-		));
+		this.robot.swerve.setDefaultCommand(this.robot.complexCommands.drive(controller));
 		
 		return this;
 		
