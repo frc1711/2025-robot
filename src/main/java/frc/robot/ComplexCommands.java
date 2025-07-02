@@ -40,7 +40,6 @@ public class ComplexCommands {
 
 		double joystickDeadband = 0.1;
 		double linearInputPowerSmoothing = 3;
-		Time timeToMaxVelocity = Seconds.of(0.5);
 		LinearVelocity maxLinearVelocity = InchesPerSecond.of(100);
 		AngularVelocity maxAngularVelocity = DegreesPerSecond.of(240);
 		Swerve swerve = this.robot.swerve;
@@ -51,15 +50,13 @@ public class ComplexCommands {
 				.withClamp(-1, 1)
 				.withScaledDeadband(joystickDeadband)
 				.withExponentialCurve(linearInputPowerSmoothing)
-				.withScaling(maxLinearVelocity.in(MetersPerSecond))
-					.withMaximumSlewRate(maxLinearVelocity.div(timeToMaxVelocity).in(InchesPerSecond.per(Second))),
+				.withScaling(maxLinearVelocity.in(MetersPerSecond)),
 			DoubleSupplierBuilder.fromRightX(controller)
 				.withScaling(-1)
 				.withClamp(-1, 1)
 				.withScaledDeadband(joystickDeadband)
 				.withExponentialCurve(linearInputPowerSmoothing)
 				.withScaling(maxAngularVelocity.in(DegreesPerSecond))
-				.withMaximumSlewRate(maxAngularVelocity.div(timeToMaxVelocity).in(DegreesPerSecond.per(Second))),
 		).finallyDo(swerve::stop);
 
 	}
@@ -185,10 +182,9 @@ public class ComplexCommands {
 //
 //			);
 			
-			scoreCoral = this.robot.swerve.commands.drive(
+			scoreCoral = this.robot.swerve.commands.driveRobotRelative(
 					() -> new Translation2d(Inches.of(-15), Inches.of(0)),
-					() -> 0,
-					false
+					() -> 0
 				).withTimeout(0.25)
 				.finallyDo(this.robot.swerve::stop).andThen(
 					scoreCoral
