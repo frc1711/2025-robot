@@ -506,10 +506,9 @@ public class Swerve extends SubsystemBase {
 			
 		}
 		
-		public Command drive(
+		public Command driveRobotRelative(
 			Supplier<Translation2d> xyInchesPerSecond,
-			DoubleSupplier rotationDegreesPerSecond,
-			boolean fieldRelative
+			DoubleSupplier rotationDegreesPerSecond
 		) {
 			
 			return Swerve.this.run(() -> {
@@ -520,10 +519,29 @@ public class Swerve extends SubsystemBase {
 					xy.getMeasureX().per(Second),
 					xy.getMeasureY().per(Second),
 					DegreesPerSecond.of(rotationDegreesPerSecond.getAsDouble())
-				), fieldRelative);
+				));
 				
 			});
 			
+		}
+
+		public Command driveFieldRelative(
+			Supplier<Translation2d> xyInchesPerSecond,
+			DoubleSupplier rotationDegreesPerSecond
+		) {
+
+			return Swerve.this.run(() -> {
+
+				Translation2d xy = xyInchesPerSecond.get();
+
+				Swerve.this.applyChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
+					xy.getMeasureX().per(Second),
+					xy.getMeasureY().per(Second),
+					DegreesPerSecond.of(rotationDegreesPerSecond.getAsDouble())
+				), Rotation2d.fromDegrees(Swerve.this.gyro.getRotation().in(Degrees))));
+
+			});
+
 		}
 		
 		public Command goToPosition(
@@ -635,11 +653,11 @@ public class Swerve extends SubsystemBase {
 					
 					if (needsInverting) point = point.times(-1);
 					
-					Swerve.this.applyChassisSpeeds(new ChassisSpeeds(
+					Swerve.this.applyChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
 						MetersPerSecond.of(point.getX()),
 						MetersPerSecond.of(point.getY()),
 						DegreesPerSecond.of(Math.min(thetaFeed, this.MAX_ANGULAR_VELOCITY.in(DegreesPerSecond)))
-					), true);
+					), Rotation2d.fromDegrees(Swerve.this.gyro.getRotation().in(Degrees))));
 					
 				}
 				
@@ -663,7 +681,7 @@ public class Swerve extends SubsystemBase {
 					
 					Swerve.this.odometry.removeDisplaySetpoint();
 					Swerve.this.odometry.vision.resetAprilTagFilter();
-					Swerve.this.applyChassisSpeeds(new ChassisSpeeds(0, 0, 0), false);
+					Swerve.this.applyChassisSpeeds(new ChassisSpeeds(0, 0, 0));
 					
 				}
 				
