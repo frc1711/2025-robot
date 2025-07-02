@@ -1,7 +1,9 @@
-package frc.robot.controlschemes;
+package frc.robot.controls.controlsschemes;
 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.RobotContainer;
+import frc.robot.controls.ControlsScheme;
+import frc.robot.controls.ControlsSchemeBuilder;
 
 public class TestingTeleoperativeControlsScheme implements ControlsScheme {
 	

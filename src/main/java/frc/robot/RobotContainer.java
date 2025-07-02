@@ -5,19 +5,13 @@
 package frc.robot;
 
 import com.ctre.phoenix6.Orchestra;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import frc.robot.configuration.StatusLightsPattern;
-import frc.robot.controlschemes.ControlsScheme;
-import frc.robot.controlschemes.StandardTeleoperativeControlsScheme;
-import frc.robot.controlschemes.TestingTeleoperativeControlsScheme;
+import frc.robot.controls.ControlsScheme;
+import frc.robot.controls.controlsschemes.StandardTeleoperativeControlsScheme;
 import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.util.RaptorsOdometry;
-import frc.robot.util.RobotPoseBuilder;
-
-import static edu.wpi.first.units.Units.Inches;
 
 public class RobotContainer {
   
