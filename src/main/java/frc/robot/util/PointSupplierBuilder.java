@@ -188,20 +188,17 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 	}
 	
 	public PointSupplierBuilder withMaximumSlewRate(double limit) {
-		
-		return new PointSupplierBuilder(new Supplier<Translation2d>() {
+
+		return new PointSupplierBuilder(new Supplier<>() {
 			SlewRateLimiter xLimiter = new SlewRateLimiter(limit);
 			SlewRateLimiter yLimiter = new SlewRateLimiter(limit);
 			@Override
 			public Translation2d get() {
-				
 				Translation2d original = PointSupplierBuilder.this.get();
-				
 				return new Translation2d(
 					Inches.of(this.xLimiter.calculate(original.getMeasureX().in(Inches))),
 					Inches.of(this.yLimiter.calculate(original.getMeasureY().in(Inches)))
 				);
-				
 			}
 		});
 		
