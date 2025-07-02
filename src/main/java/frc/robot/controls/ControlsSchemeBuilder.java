@@ -1,4 +1,4 @@
-package frc.robot.controlschemes;
+package frc.robot.controls;
 
 import com.revrobotics.spark.config.SparkBaseConfig;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -84,11 +84,11 @@ public class ControlsSchemeBuilder {
 		
 		LinearVelocity speed = FeetPerSecond.of(1.5);
 		
-		controller.povUp().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(speed.in(MetersPerSecond), 0), () -> 0, false));
-		controller.povDown().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(-speed.in(MetersPerSecond), 0), () -> 0, false));
+		controller.povUp().whileTrue(this.robot.swerve.commands.driveRobotRelative(() -> new Translation2d(speed.in(MetersPerSecond), 0), () -> 0));
+		controller.povDown().whileTrue(this.robot.swerve.commands.driveRobotRelative(() -> new Translation2d(-speed.in(MetersPerSecond), 0), () -> 0));
 		
-		controller.povLeft().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(0, speed.in(MetersPerSecond)), () -> 0, false));
-		controller.povRight().whileTrue(this.robot.swerve.commands.drive(() -> new Translation2d(0, -speed.in(MetersPerSecond)), () -> 0, false));
+		controller.povLeft().whileTrue(this.robot.swerve.commands.driveRobotRelative(() -> new Translation2d(0, speed.in(MetersPerSecond)), () -> 0));
+		controller.povRight().whileTrue(this.robot.swerve.commands.driveRobotRelative(() -> new Translation2d(0, -speed.in(MetersPerSecond)), () -> 0));
 		
 		return this;
 		

@@ -129,7 +129,7 @@ public class Swerve extends SubsystemBase {
 	
 	public void stop() {
 		
-		this.applyChassisSpeeds(new ChassisSpeeds(0, 0, 0), false);
+		this.applyChassisSpeeds(new ChassisSpeeds(0, 0, 0));
 		
 	}
 	

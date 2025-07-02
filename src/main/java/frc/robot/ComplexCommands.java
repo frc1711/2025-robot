@@ -45,22 +45,21 @@ public class ComplexCommands {
 		AngularVelocity maxAngularVelocity = DegreesPerSecond.of(240);
 		Swerve swerve = this.robot.swerve;
 
-		return swerve.commands.drive(
-				PointSupplierBuilder.fromLeftJoystick(controller)
-						.normalizeXboxJoystickToNWU()
-						.withClamp(-1, 1)
-						.withScaledDeadband(joystickDeadband)
-						.withExponentialCurve(linearInputPowerSmoothing)
-						.withScaling(maxLinearVelocity.in(MetersPerSecond))
-						.withMaximumSlewRate(maxLinearVelocity.div(timeToMaxVelocity).in(InchesPerSecond.per(Second))),
-				DoubleSupplierBuilder.fromRightX(controller)
-						.withScaling(-1)
-						.withClamp(-1, 1)
-						.withScaledDeadband(joystickDeadband)
-						.withExponentialCurve(linearInputPowerSmoothing)
-						.withScaling(maxAngularVelocity.in(DegreesPerSecond))
-						.withMaximumSlewRate(maxAngularVelocity.div(timeToMaxVelocity).in(DegreesPerSecond.per(Second))),
-				true
+		return swerve.commands.driveFieldRelative(
+			PointSupplierBuilder.fromLeftJoystick(controller)
+				.normalizeXboxJoystickToNWU()
+				.withClamp(-1, 1)
+				.withScaledDeadband(joystickDeadband)
+				.withExponentialCurve(linearInputPowerSmoothing)
+				.withScaling(maxLinearVelocity.in(MetersPerSecond))
+					.withMaximumSlewRate(maxLinearVelocity.div(timeToMaxVelocity).in(InchesPerSecond.per(Second))),
+			DoubleSupplierBuilder.fromRightX(controller)
+				.withScaling(-1)
+				.withClamp(-1, 1)
+				.withScaledDeadband(joystickDeadband)
+				.withExponentialCurve(linearInputPowerSmoothing)
+				.withScaling(maxAngularVelocity.in(DegreesPerSecond))
+				.withMaximumSlewRate(maxAngularVelocity.div(timeToMaxVelocity).in(DegreesPerSecond.per(Second))),
 		).finallyDo(swerve::stop);
 
 	}

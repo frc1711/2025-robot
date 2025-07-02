@@ -24,7 +24,7 @@ public enum Auton {
 	),
 	
 	CROSS_THE_LINE("Cross the Line", robot ->
-		robot.swerve.commands.drive(() -> new Translation2d(-15, 0), () -> 0, true)
+		robot.swerve.commands.driveFieldRelative(() -> new Translation2d(-15, 0), () -> 0)
 			.withTimeout(Seconds.of(4))
 	),
 	
@@ -36,10 +36,9 @@ public enum Auton {
 			FieldThird.RIGHT, robot.complexCommands.autoScoreOnReef(() -> robot.odometry.getFieldThird().getReefFrontAprilTagID(), ReefLevel.L4, ReefAlignment.RIGHT)
 		), robot.odometry::getFieldThird);
 		
-		Command backUpFromReef = robot.swerve.commands.drive(
+		Command backUpFromReef = robot.swerve.commands.driveRobotRelative(
 			() -> new Translation2d(Inches.of(-20), Inches.of(0)),
-			() -> 0,
-			false
+			() -> 0
 		).withTimeout(1);
 		
 		Command goToCoralStation = robot.swerve.commands.goToPosition(() ->
@@ -60,10 +59,9 @@ public enum Auton {
 			Degrees.of(1)
 		);
 		
-		Command driveAgainstCoralStation = robot.swerve.commands.drive(
+		Command driveAgainstCoralStation = robot.swerve.commands.driveRobotRelative(
 			() -> new Translation2d(Inches.of(-10), Inches.of(0)),
-			() -> 0,
-			false
+			() -> 0
 		);
 		
 		Command coralLoadingDeadline = Commands.waitUntil(
@@ -92,22 +90,22 @@ public enum Auton {
 	}),
 	
 	SINGLE_L1_CORAL_CENTER("Single L1 Coral (Center)", robot ->
-		robot.swerve.commands.drive(() -> new Translation2d(-15, 0), () -> 0, true)
+		robot.swerve.commands.driveFieldRelative(() -> new Translation2d(-15, 0), () -> 0)
 			.withTimeout(Seconds.of(4))
 			.andThen(robot.mailbox.commands.feed().withTimeout(2))
 	),
 	
 	SINGLE_L4_CORAL_CENTER("Single L4 Coral (Center)", robot ->
 		new SequentialCommandGroup(
-			robot.swerve.commands.drive(() -> new Translation2d(-15, 0), () -> 0, true).withTimeout(Seconds.of(6)),
-			robot.swerve.commands.drive(() -> new Translation2d(10, 0), () -> 0, true).withTimeout(Seconds.of(0.25)),
-			robot.swerve.commands.drive(() -> new Translation2d(0, 0), () -> 0, true).withTimeout(Seconds.of(0.1)),
+			robot.swerve.commands.driveFieldRelative(() -> new Translation2d(-15, 0), () -> 0).withTimeout(Seconds.of(6)),
+			robot.swerve.commands.driveFieldRelative(() -> new Translation2d(10, 0), () -> 0).withTimeout(Seconds.of(0.25)),
+			robot.swerve.commands.driveFieldRelative(() -> new Translation2d(0, 0), () -> 0).withTimeout(Seconds.of(0.1)),
 			robot.complexCommands.scoreOnL4()
 		)
 	),
 	
 	SINGLE_CORAL("Single Coral", robot ->
-		robot.swerve.commands.drive(() -> new Translation2d(-15, 0), () -> 0, true)
+		robot.swerve.commands.driveFieldRelative(() -> new Translation2d(-15, 0), () -> 0)
 			.until(robot.odometry::hasVisionData)
 			.andThen(robot.complexCommands.autoScoreOnReef(() -> robot.odometry.getFieldThird().getReefFrontAprilTagID(), ReefLevel.L4, ReefAlignment.LEFT))
 	),
