@@ -1,6 +1,6 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.configuration.FieldThird;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.ReefLevel;
-import frc.robot.util.LogCommand;
+import frc.robot.subsystems.Swerve;
 import frc.robot.util.RobotPoseBuilder;
 
 import java.util.Map;
@@ -24,7 +24,7 @@ public enum Auton {
 	),
 	
 	CROSS_THE_LINE("Cross the Line", robot ->
-		robot.swerve.commands.driveFieldRelative(() -> new Translation2d(-15, 0), () -> 0)
+		robot.swerve.commands.drive(new ChassisSpeeds(InchesPerSecond.of(-15), InchesPerSecond.of(0), DegreesPerSecond.of(0)), Swerve.DriveMode.FIELD_RELATIVE, true)
 			.withTimeout(Seconds.of(4))
 	),
 	
@@ -35,10 +35,15 @@ public enum Auton {
 			FieldThird.CENTER, robot.complexCommands.autoScoreOnReef(() -> robot.odometry.getFieldThird().getReefFrontAprilTagID(), ReefLevel.L4, ReefAlignment.LEFT),
 			FieldThird.RIGHT, robot.complexCommands.autoScoreOnReef(() -> robot.odometry.getFieldThird().getReefFrontAprilTagID(), ReefLevel.L4, ReefAlignment.RIGHT)
 		), robot.odometry::getFieldThird);
-		
-		Command backUpFromReef = robot.swerve.commands.driveRobotRelative(
-			() -> new Translation2d(Inches.of(-20), Inches.of(0)),
-			() -> 0
+
+		Command backUpFromReef = robot.swerve.commands.drive(
+			new ChassisSpeeds(
+				InchesPerSecond.of(-20),
+				InchesPerSecond.of(0),
+				DegreesPerSecond.of(0)
+			),
+			Swerve.DriveMode.ROBOT_RELATIVE,
+			true
 		).withTimeout(1);
 		
 		Command goToCoralStation = robot.swerve.commands.goToPosition(() ->
@@ -58,10 +63,15 @@ public enum Auton {
 			Inches.of(0.5),
 			Degrees.of(1)
 		);
-		
-		Command driveAgainstCoralStation = robot.swerve.commands.driveRobotRelative(
-			() -> new Translation2d(Inches.of(-10), Inches.of(0)),
-			() -> 0
+
+		Command driveAgainstCoralStation = robot.swerve.commands.drive(
+			new ChassisSpeeds(
+				InchesPerSecond.of(-10),
+				InchesPerSecond.of(0),
+				DegreesPerSecond.of(0)
+			),
+			Swerve.DriveMode.ROBOT_RELATIVE,
+			true
 		);
 		
 		Command coralLoadingDeadline = Commands.waitUntil(
@@ -90,22 +100,21 @@ public enum Auton {
 	}),
 	
 	SINGLE_L1_CORAL_CENTER("Single L1 Coral (Center)", robot ->
-		robot.swerve.commands.driveFieldRelative(() -> new Translation2d(-15, 0), () -> 0)
+		robot.swerve.commands.drive(new ChassisSpeeds(InchesPerSecond.of(-15), InchesPerSecond.of(0), DegreesPerSecond.of(0)), Swerve.DriveMode.FIELD_RELATIVE, true)
 			.withTimeout(Seconds.of(4))
 			.andThen(robot.mailbox.commands.feed().withTimeout(2))
 	),
 	
 	SINGLE_L4_CORAL_CENTER("Single L4 Coral (Center)", robot ->
 		new SequentialCommandGroup(
-			robot.swerve.commands.driveFieldRelative(() -> new Translation2d(-15, 0), () -> 0).withTimeout(Seconds.of(6)),
-			robot.swerve.commands.driveFieldRelative(() -> new Translation2d(10, 0), () -> 0).withTimeout(Seconds.of(0.25)),
-			robot.swerve.commands.driveFieldRelative(() -> new Translation2d(0, 0), () -> 0).withTimeout(Seconds.of(0.1)),
+			robot.swerve.commands.drive(new ChassisSpeeds(InchesPerSecond.of(-15), InchesPerSecond.of(0), DegreesPerSecond.of(0)), Swerve.DriveMode.FIELD_RELATIVE, true).withTimeout(Seconds.of(6)),
+			robot.swerve.commands.drive(new ChassisSpeeds(InchesPerSecond.of(10), InchesPerSecond.of(0), DegreesPerSecond.of(0)), Swerve.DriveMode.FIELD_RELATIVE, true).withTimeout(Seconds.of(0.25)),
 			robot.complexCommands.scoreOnL4()
 		)
 	),
 	
 	SINGLE_CORAL("Single Coral", robot ->
-		robot.swerve.commands.driveFieldRelative(() -> new Translation2d(-15, 0), () -> 0)
+		robot.swerve.commands.drive(new ChassisSpeeds(InchesPerSecond.of(-15), InchesPerSecond.of(0), DegreesPerSecond.of(0)), Swerve.DriveMode.FIELD_RELATIVE, true)
 			.until(robot.odometry::hasVisionData)
 			.andThen(robot.complexCommands.autoScoreOnReef(() -> robot.odometry.getFieldThird().getReefFrontAprilTagID(), ReefLevel.L4, ReefAlignment.LEFT))
 	),

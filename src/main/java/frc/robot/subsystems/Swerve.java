@@ -29,6 +29,7 @@ import frc.robot.util.*;
 
 import java.util.*;
 import java.util.function.DoubleSupplier;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -39,6 +40,20 @@ public class Swerve extends SubsystemBase {
 	protected static final double SLOW_MODE_TRANSLATION_MULTIPLIER = 0.5;
 
 	protected static final double SLOW_MODE_ROTATION_MULTIPLIER = 0.25;
+
+	protected static final LinearAcceleration MAX_LINEAR_ACCELERATION = FeetPerSecondPerSecond.of(30);
+
+	protected static final AngularAcceleration MAX_ANGULAR_ACCELERATION = RotationsPerSecondPerSecond.of(4);
+
+	protected static final LinearVelocity MAX_LINEAR_VELOCITY = InchesPerSecond.of(100);
+
+	protected static final AngularVelocity MAX_ANGULAR_VELOCITY = RotationsPerSecond.of(0.5);
+
+	protected static final LinearVelocity SLOW_MODE_MAX_LINEAR_VELOCITY = InchesPerSecond.of(30);
+
+	protected static final AngularVelocity SLOW_MODE_ANGULAR_VELOCITY = DegreesPerSecond.of(45);
+
+	protected final Pipeline<ChassisSpeeds> CHASSIS_SPEEDS_PIPELINE = new SwerveControlPipeline();
 
 	protected final SwerveModule[] modules;
 	
@@ -57,6 +72,8 @@ public class Swerve extends SubsystemBase {
 	public boolean isSlowModeEnabled;
 	
 	protected ChassisSpeeds chassisSpeeds;
+
+	protected Pipeline<ChassisSpeeds> chassisSpeedsPipeline = new Pipeline<>();
 	
 	protected boolean shouldUseChassisSpeeds;
 	
@@ -185,63 +202,9 @@ public class Swerve extends SubsystemBase {
 		
 	}
 	
-	public void applyChassisSpeeds(ChassisSpeeds chassisSpeeds, boolean fieldRelative) {
-		
-		if (fieldRelative) {
-			
-			chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-				chassisSpeeds,
-				Rotation2d.fromDegrees(this.gyro.getRotation().in(Degrees))
-			);
-			
-		}
+	public void applyChassisSpeeds(ChassisSpeeds chassisSpeeds) {
 
-//		// Poll the current state of the heading lock.
-//		boolean wasHeadingLockEnabled = this.isHeadingLockEnabled;
-//
-//		// Enable the heading lock if we are not receiving any rotational input,
-//		// otherwise, disable it (if we *are* receiving rotational input).
-//		this.isHeadingLockEnabled = Math.abs(chassisSpeeds.omegaRadiansPerSecond) <= 0;
-//
-//		// Check for a rising edge of the heading lock state.
-//		boolean didHeadingLockBecomeEnabled = (
-//			!wasHeadingLockEnabled &&
-//			this.isHeadingLockEnabled
-//		);
-//
-//		// If the heading lock *became* active...
-//		if (didHeadingLockBecomeEnabled) {
-//
-//			// Update the heading setpoint to the heading we've rotated to while
-//			// the heading lock was disabled.
-//			this.headingPIDController.setSetpoint(
-//				this.getFieldRelativeHeading().in(Degrees)
-//			);
-//
-//		}
-
-//		chassisSpeeds.omegaRadiansPerSecond *= 1.5;
-		
-		if (this.isSlowModeEnabled) {
-			
-			Translation2d originalLinearSpeeds = new Translation2d(
-				chassisSpeeds.vxMetersPerSecond,
-				chassisSpeeds.vyMetersPerSecond
-			);
-			
-			Translation2d newLinearSpeeds = new Translation2d(
-				originalLinearSpeeds.getNorm() * Swerve.SLOW_MODE_TRANSLATION_MULTIPLIER,
-				originalLinearSpeeds.getAngle()
-			);
-			
-			chassisSpeeds.vxMetersPerSecond = newLinearSpeeds.getX();
-			chassisSpeeds.vyMetersPerSecond = newLinearSpeeds.getY();
-			chassisSpeeds.omegaRadiansPerSecond *= Swerve.SLOW_MODE_ROTATION_MULTIPLIER;
-			
-		}
-		
-		// Update the chassis speeds.
-		this.chassisSpeeds = chassisSpeeds;
+		this.chassisSpeeds = this.CHASSIS_SPEEDS_PIPELINE.apply(chassisSpeeds);
 		
 	}
 	
@@ -252,26 +215,12 @@ public class Swerve extends SubsystemBase {
 		this.headingPIDController.setSetpoint(heading.in(Degrees));
 		
 		this.odometry.resetPose(existingPose);
-		
-		
+
 	}
 	
 	@Override
 	public void periodic() {
-		
-//		Angle heading = this.getFieldRelativeHeading();
-		
-//		double headingPIDOutput =
-//			this.headingPIDController.calculate(heading.in(Degrees));
-//
-//		this.isHeadingLockEnabled = false;
-//
-//		ChassisSpeeds newChassisSpeeds = new ChassisSpeeds(
-//			this.chassisSpeeds.vxMetersPerSecond,
-//			this.chassisSpeeds.vyMetersPerSecond,
-//			this.isHeadingLockEnabled ? headingPIDOutput : this.chassisSpeeds.omegaRadiansPerSecond
-//		);
-		
+
 		if (!this.shouldUseChassisSpeeds) return;
 		
 		SwerveModuleState[] newModuleStates =
@@ -281,8 +230,6 @@ public class Swerve extends SubsystemBase {
 			newModuleStates
 		);
 
-		
-		
 	}
 	
 	@Override
@@ -434,6 +381,108 @@ public class Swerve extends SubsystemBase {
 		};
 		
 	}
+
+	protected class SwerveControlPipeline extends Pipeline<ChassisSpeeds> {
+
+//		private Function<ChassisSpeeds, ChassisSpeeds> MAX_SPEED_CHECK = (ChassisSpeeds chassisSpeeds) -> {
+//			Translation2d translation = new Translation2d(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond);
+//
+//		};
+
+		private Function<ChassisSpeeds, ChassisSpeeds> SLOW_MODE_CHECK = (ChassisSpeeds chassisSpeeds) -> {
+
+			if (Swerve.this.isSlowModeEnabled) {
+
+				Translation2d originalLinearSpeeds = new Translation2d(
+					chassisSpeeds.vxMetersPerSecond,
+					chassisSpeeds.vyMetersPerSecond
+				);
+
+				Translation2d newLinearSpeeds = new Translation2d(
+					originalLinearSpeeds.getNorm() * Swerve.SLOW_MODE_TRANSLATION_MULTIPLIER,
+					originalLinearSpeeds.getAngle()
+				);
+
+				chassisSpeeds.vxMetersPerSecond = newLinearSpeeds.getX();
+				chassisSpeeds.vyMetersPerSecond = newLinearSpeeds.getY();
+				chassisSpeeds.omegaRadiansPerSecond *= Swerve.SLOW_MODE_ROTATION_MULTIPLIER;
+
+			}
+
+			return chassisSpeeds;
+
+		};
+
+		private Function<ChassisSpeeds, ChassisSpeeds> SLEW_RATE_CHECK = new Function<>() {
+			final ChassisSpeedsSlewRateLimiter limiter = new ChassisSpeedsSlewRateLimiter(
+				Swerve.MAX_LINEAR_ACCELERATION,
+				Swerve.MAX_ANGULAR_ACCELERATION
+			);
+			@Override
+			public ChassisSpeeds apply(ChassisSpeeds chassisSpeeds) {
+				return limiter.calculate(chassisSpeeds);
+			}
+		};
+
+		private Function<ChassisSpeeds, ChassisSpeeds> HEADING_LOCK_CHECK = (ChassisSpeeds chassisSpeeds) -> {
+
+			return chassisSpeeds;
+
+//			if (Swerve.this.isHeadingLockEnabled) {
+//
+//				Angle currentHeading = Swerve.this.getFieldRelativeHeading();
+//				double headingError = Swerve.this.headingPIDController.calculate(currentHeading.in(Degrees));
+//
+//				chassisSpeeds.omegaRadiansPerSecond += Radians.of(headingError).in(RadiansPerSecond);
+//
+//			}
+//
+//			return chassisSpeeds;
+			//		// Poll the current state of the heading lock.
+//		boolean wasHeadingLockEnabled = this.isHeadingLockEnabled;
+//
+//		// Enable the heading lock if we are not receiving any rotational input,
+//		// otherwise, disable it (if we *are* receiving rotational input).
+//		this.isHeadingLockEnabled = Math.abs(chassisSpeeds.omegaRadiansPerSecond) <= 0;
+//
+//		// Check for a rising edge of the heading lock state.
+//		boolean didHeadingLockBecomeEnabled = (
+//			!wasHeadingLockEnabled &&
+//			this.isHeadingLockEnabled
+//		);
+//
+//		// If the heading lock *became* active...
+//		if (didHeadingLockBecomeEnabled) {
+//
+//			// Update the heading setpoint to the heading we've rotated to while
+//			// the heading lock was disabled.
+//			this.headingPIDController.setSetpoint(
+//				this.getFieldRelativeHeading().in(Degrees)
+//			);
+//
+//		}
+
+
+		};
+
+		private List<Function<ChassisSpeeds, ChassisSpeeds>> STEPS = List.of(
+			this.SLOW_MODE_CHECK,
+			this.SLEW_RATE_CHECK
+//			this.HEADING_LOCK_CHECK
+		);
+
+		public SwerveControlPipeline() {
+
+			this.STEPS.forEach(this::addStep);
+
+		}
+
+	}
+
+	public enum DriveMode {
+		ROBOT_RELATIVE,
+		FIELD_RELATIVE
+	}
 	
 	public class Commands {
 		
@@ -505,40 +554,77 @@ public class Swerve extends SubsystemBase {
 			return new InstantCommand(Swerve.this::stop, Swerve.this);
 			
 		}
-		
-		public Command driveRobotRelative(
-			Supplier<Translation2d> xyInchesPerSecond,
-			DoubleSupplier rotationDegreesPerSecond
+
+		public Command driveFromController(
+			Supplier<Translation2d> translationInput,
+			DoubleSupplier rotationInput,
+			Swerve.DriveMode mode
 		) {
-			
-			return Swerve.this.run(() -> {
-				
-				Translation2d xy = xyInchesPerSecond.get();
-				
-				Swerve.this.applyChassisSpeeds(new ChassisSpeeds(
-					xy.getMeasureX().per(Second),
-					xy.getMeasureY().per(Second),
-					DegreesPerSecond.of(rotationDegreesPerSecond.getAsDouble())
-				));
-				
-			});
-			
+
+			return this.drive(
+				() -> {
+					Translation2d translation = translationInput.get();
+					return new ChassisSpeeds(
+						Swerve.MAX_LINEAR_VELOCITY.times(translation.getX()).times(Math.sqrt(2)),
+						Swerve.MAX_LINEAR_VELOCITY.times(translation.getY()).times(Math.sqrt(2)),
+						Swerve.MAX_ANGULAR_VELOCITY.times(rotationInput.getAsDouble())
+					);
+				},
+				mode,
+				false
+			);
+
 		}
 
-		public Command driveFieldRelative(
-			Supplier<Translation2d> xyInchesPerSecond,
-			DoubleSupplier rotationDegreesPerSecond
+		public Command drive(
+			ChassisSpeeds chassisSpeeds,
+			Swerve.DriveMode mode,
+			boolean useRawInput
+		) {
+
+			ChassisSpeeds resultantChassisSpeeds = switch (mode) {
+				case ROBOT_RELATIVE -> chassisSpeeds;
+				case FIELD_RELATIVE -> ChassisSpeeds.fromFieldRelativeSpeeds(
+					chassisSpeeds,
+					Rotation2d.fromDegrees(Swerve.this.gyro.getRotation().in(Degrees))
+				);
+			};
+
+			resultantChassisSpeeds = useRawInput
+					? resultantChassisSpeeds
+					: Swerve.this.CHASSIS_SPEEDS_PIPELINE.apply(resultantChassisSpeeds);
+
+			ChassisSpeeds finalResultantChassisSpeeds = resultantChassisSpeeds;
+
+			return Swerve.this.run(() -> Swerve.this.applyChassisSpeeds(finalResultantChassisSpeeds));
+
+		}
+
+		public Command drive(
+			Supplier<ChassisSpeeds> chassisSpeedsSupplier,
+			Swerve.DriveMode mode,
+			boolean useRawInput
 		) {
 
 			return Swerve.this.run(() -> {
 
-				Translation2d xy = xyInchesPerSecond.get();
+				ChassisSpeeds inputChassisSpeeds = chassisSpeedsSupplier.get();
 
-				Swerve.this.applyChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
-					xy.getMeasureX().per(Second),
-					xy.getMeasureY().per(Second),
-					DegreesPerSecond.of(rotationDegreesPerSecond.getAsDouble())
-				), Rotation2d.fromDegrees(Swerve.this.gyro.getRotation().in(Degrees))));
+				ChassisSpeeds resultantChassisSpeeds = switch (mode) {
+					case ROBOT_RELATIVE -> inputChassisSpeeds;
+					case FIELD_RELATIVE -> ChassisSpeeds.fromFieldRelativeSpeeds(
+							inputChassisSpeeds,
+							Rotation2d.fromDegrees(Swerve.this.gyro.getRotation().in(Degrees))
+					);
+				};
+
+				resultantChassisSpeeds = useRawInput
+						? resultantChassisSpeeds
+						: Swerve.this.CHASSIS_SPEEDS_PIPELINE.apply(resultantChassisSpeeds);
+
+				ChassisSpeeds finalResultantChassisSpeeds = resultantChassisSpeeds;
+
+				Swerve.this.applyChassisSpeeds(finalResultantChassisSpeeds);
 
 			});
 

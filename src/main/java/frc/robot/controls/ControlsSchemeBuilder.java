@@ -1,7 +1,8 @@
 package frc.robot.controls;
 
 import com.revrobotics.spark.config.SparkBaseConfig;
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -11,6 +12,7 @@ import frc.robot.RobotContainer;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.ReefLevel;
 import frc.robot.configuration.ReefAlignmentMode;
+import frc.robot.subsystems.Swerve;
 import frc.robot.util.*;
 
 import java.util.Map;
@@ -83,12 +85,13 @@ public class ControlsSchemeBuilder {
 	public ControlsSchemeBuilder useDPadForRobotRelativeDriving(CommandXboxController controller) {
 		
 		LinearVelocity speed = FeetPerSecond.of(1.5);
+		LinearVelocity zeroTranslation = InchesPerSecond.of(0);
+		AngularVelocity zeroTurning = DegreesPerSecond.of(0);
 		
-		controller.povUp().whileTrue(this.robot.swerve.commands.driveRobotRelative(() -> new Translation2d(speed.in(MetersPerSecond), 0), () -> 0));
-		controller.povDown().whileTrue(this.robot.swerve.commands.driveRobotRelative(() -> new Translation2d(-speed.in(MetersPerSecond), 0), () -> 0));
-		
-		controller.povLeft().whileTrue(this.robot.swerve.commands.driveRobotRelative(() -> new Translation2d(0, speed.in(MetersPerSecond)), () -> 0));
-		controller.povRight().whileTrue(this.robot.swerve.commands.driveRobotRelative(() -> new Translation2d(0, -speed.in(MetersPerSecond)), () -> 0));
+		controller.povUp().whileTrue(this.robot.swerve.commands.drive(new ChassisSpeeds(speed, zeroTranslation, zeroTurning), Swerve.DriveMode.ROBOT_RELATIVE, false));
+		controller.povDown().whileTrue(this.robot.swerve.commands.drive(new ChassisSpeeds(speed.times(-1), zeroTranslation, zeroTurning), Swerve.DriveMode.ROBOT_RELATIVE, false));
+		controller.povLeft().whileTrue(this.robot.swerve.commands.drive(new ChassisSpeeds(zeroTranslation, speed, zeroTurning), Swerve.DriveMode.ROBOT_RELATIVE, false));
+		controller.povRight().whileTrue(this.robot.swerve.commands.drive(new ChassisSpeeds(zeroTranslation, speed.times(-1), zeroTurning), Swerve.DriveMode.ROBOT_RELATIVE, false));
 		
 		return this;
 		

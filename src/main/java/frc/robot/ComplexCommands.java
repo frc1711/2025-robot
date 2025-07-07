@@ -2,9 +2,7 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -14,7 +12,6 @@ import frc.robot.configuration.StatusLightsPattern;
 import frc.robot.subsystems.Swerve;
 import frc.robot.util.*;
 
-import java.util.Map;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -40,23 +37,20 @@ public class ComplexCommands {
 
 		double joystickDeadband = 0.1;
 		double linearInputPowerSmoothing = 3;
-		LinearVelocity maxLinearVelocity = InchesPerSecond.of(100);
-		AngularVelocity maxAngularVelocity = DegreesPerSecond.of(240);
 		Swerve swerve = this.robot.swerve;
 
-		return swerve.commands.driveFieldRelative(
+		return swerve.commands.driveFromController(
 			PointSupplierBuilder.fromLeftJoystick(controller)
 				.normalizeXboxJoystickToNWU()
 				.withClamp(-1, 1)
 				.withScaledDeadband(joystickDeadband)
-				.withExponentialCurve(linearInputPowerSmoothing)
-				.withScaling(maxLinearVelocity.in(MetersPerSecond)),
+				.withExponentialCurve(linearInputPowerSmoothing),
 			DoubleSupplierBuilder.fromRightX(controller)
 				.withScaling(-1)
 				.withClamp(-1, 1)
 				.withScaledDeadband(joystickDeadband)
-				.withExponentialCurve(linearInputPowerSmoothing)
-				.withScaling(maxAngularVelocity.in(DegreesPerSecond))
+				.withExponentialCurve(linearInputPowerSmoothing),
+			Swerve.DriveMode.FIELD_RELATIVE
 		).finallyDo(swerve::stop);
 
 	}
@@ -177,18 +171,15 @@ public class ComplexCommands {
 			.until(robot.intake.triggers.isCoralInUpperIntake().negate().and(robot.intake.triggers.isCoralInLowerIntake().negate()));
 
 		if (level == ReefLevel.L4) {
-			
-//			goToScoringPosition = goToScoringPosition.andThen(
-//
-//			);
-			
-			scoreCoral = this.robot.swerve.commands.driveRobotRelative(
-					() -> new Translation2d(Inches.of(-15), Inches.of(0)),
-					() -> 0
-				).withTimeout(0.25)
-				.finallyDo(this.robot.swerve::stop).andThen(
-					scoreCoral
-				);
+
+			scoreCoral = this.robot.swerve.commands.drive(new ChassisSpeeds(
+				InchesPerSecond.of(-15),
+				InchesPerSecond.of(0),
+				DegreesPerSecond.of(0)
+			), Swerve.DriveMode.ROBOT_RELATIVE, true)
+				.withTimeout(0.25)
+				.finallyDo(this.robot.swerve::stop)
+				.andThen(scoreCoral);
 			
 			scoreCoral = scoreCoral.andThen(
 				this.robot.elevator.commands.goTo(ElevatorPosition.L4_TIP)
