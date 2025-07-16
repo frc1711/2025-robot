@@ -1,4 +1,4 @@
-package frc.robot.controls;
+package frc.robot.input;
 
 import com.revrobotics.spark.config.SparkBaseConfig;
 import edu.wpi.first.wpilibj2.command.Command;

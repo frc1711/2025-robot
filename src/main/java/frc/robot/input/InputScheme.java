@@ -1,4 +1,4 @@
-package frc.robot.controls;
+package frc.robot.input;
 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.RobotContainer;
