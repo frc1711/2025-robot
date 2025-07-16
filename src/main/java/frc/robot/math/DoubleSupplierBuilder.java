@@ -1,9 +1,9 @@
-package frc.robot.util;
+package frc.robot.math;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.math.DoubleUtilities;
+import frc.robot.configuration.DoublePreference;
 
 import java.util.function.DoubleSupplier;
 
@@ -71,6 +71,23 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 		
 		return new DoubleSupplierBuilder(controller::getRightY);
 		
+	}
+
+	/**
+	 * Returns a DoubleSupplier for controlling the rotation of the drivetrain.
+	 *
+	 * @param controller The XboxController from which to read the right
+	 * joystick input (to use as the rotation input).
+	 * @return A DoubleSupplier for controlling the rotation of the drivetrain.
+	 */
+	public static DoubleSupplier getRotationDoubleSupplier(CommandXboxController controller) {
+
+		return DoubleSupplierBuilder.fromRightX(controller)
+				.withScaling(-1)
+				.withClamp(-1, 1)
+				.withScaledDeadband(DoublePreference.JOYSTICK_DEADBAND.get())
+				.withExponentialCurve(DoublePreference.LINEAR_INPUT_POWER_SMOOTHING.get());
+
 	}
 	
 	public DoubleSupplierBuilder withDeadband(double deadband) {
