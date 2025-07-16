@@ -1,11 +1,11 @@
-package frc.robot.controls.controlsschemes;
+package frc.robot.controls.inputschemes;
 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.RobotContainer;
 import frc.robot.controls.InputScheme;
 import frc.robot.controls.InputSchemeBuilder;
 
-public class TestingTeleoperativeInputsScheme implements InputScheme {
+public class StandardTeleoperativeInputsScheme implements InputScheme {
 	
 	@Override
 	public void configureControllerInputs(
@@ -17,12 +17,16 @@ public class TestingTeleoperativeInputsScheme implements InputScheme {
 		(new InputSchemeBuilder(robotContainer))
 			.configureDefaultRobotCommands()
 			.useControllerJoysticksForDriving(controller1)
+			.useRBButtonForSlowMode(controller1)
+			.useYButtonForCoastMode(controller1)
 			.useTriggersToLoad(controller1)
-			.useABXYToScoreCoral(controller1)
-			.usePOVButtonsToSwitchReefScoringModes(controller1)
-			.useBumpersToClimb(controller1)
-			.useBackButtonToUnclimb(controller1)
-			.useStartToResetFieldHeading(controller1);
+			.useStartToResetFieldHeading(controller1)
+			.useABXYToScoreCoral(controller2)
+			.usePOVButtonsToSwitchReefScoringModes(controller2)
+			.useTriggersToRemoveAlgae(controller2)
+			.useBumpersToClimb(controller2)
+			.useBackButtonToUnclimb(controller2)
+			.useStartButtonToCalibrateElevator(controller2);
 		
 	}
 	
