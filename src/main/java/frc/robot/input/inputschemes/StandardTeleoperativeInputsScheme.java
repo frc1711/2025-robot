@@ -1,7 +1,9 @@
-package frc.robot.input;
+package frc.robot.input.inputschemes;
 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.RobotContainer;
+import frc.robot.input.InputScheme;
+import frc.robot.input.InputSchemeBuilder;
 
 public class StandardTeleoperativeInputsScheme implements InputScheme {
 	
