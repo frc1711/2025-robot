@@ -1,9 +1,6 @@
 package frc.robot.controls;
 
 import com.revrobotics.spark.config.SparkBaseConfig;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
@@ -12,14 +9,13 @@ import frc.robot.RobotContainer;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.ReefLevel;
 import frc.robot.configuration.ReefAlignmentMode;
-import frc.robot.subsystems.Swerve;
 import frc.robot.util.*;
 
 import java.util.Map;
 
 import static edu.wpi.first.units.Units.*;
 
-public class ControlsSchemeBuilder {
+public class InputSchemeBuilder {
 	
 	/**
 	 * The threshold at which the triggers of the controller should be
@@ -29,13 +25,13 @@ public class ControlsSchemeBuilder {
 	
 	protected final RobotContainer robot;
 	
-	public ControlsSchemeBuilder(RobotContainer robot) {
+	public InputSchemeBuilder(RobotContainer robot) {
 		
 		this.robot = robot;
 		
 	}
 	
-	public ControlsSchemeBuilder configureDefaultRobotCommands() {
+	public InputSchemeBuilder configureDefaultRobotCommands() {
 		
 		this.robot.intake.setDefaultCommand(this.robot.complexCommands.autofeedMailbox());
 		this.robot.mailbox.setDefaultCommand(this.robot.complexCommands.autoAcceptMail());
@@ -44,7 +40,7 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder useControllerJoysticksForDriving(
+	public InputSchemeBuilder useControllerJoysticksForDriving(
 		CommandXboxController controller
 	) {
 		
@@ -54,7 +50,7 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder useRBButtonForSlowMode(
+	public InputSchemeBuilder useRBButtonForSlowMode(
 		CommandXboxController controller
 	) {
 		
@@ -65,7 +61,7 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder useYButtonForCoastMode(
+	public InputSchemeBuilder useYButtonForCoastMode(
 		CommandXboxController controller
 	) {
 		
@@ -82,22 +78,23 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder useDPadForRobotRelativeDriving(CommandXboxController controller) {
-		
-		LinearVelocity speed = FeetPerSecond.of(1.5);
-		LinearVelocity zeroTranslation = InchesPerSecond.of(0);
-		AngularVelocity zeroTurning = DegreesPerSecond.of(0);
-		
-		controller.povUp().whileTrue(this.robot.swerve.commands.drive(new ChassisSpeeds(speed, zeroTranslation, zeroTurning), Swerve.DriveMode.ROBOT_RELATIVE, false));
-		controller.povDown().whileTrue(this.robot.swerve.commands.drive(new ChassisSpeeds(speed.times(-1), zeroTranslation, zeroTurning), Swerve.DriveMode.ROBOT_RELATIVE, false));
-		controller.povLeft().whileTrue(this.robot.swerve.commands.drive(new ChassisSpeeds(zeroTranslation, speed, zeroTurning), Swerve.DriveMode.ROBOT_RELATIVE, false));
-		controller.povRight().whileTrue(this.robot.swerve.commands.drive(new ChassisSpeeds(zeroTranslation, speed.times(-1), zeroTurning), Swerve.DriveMode.ROBOT_RELATIVE, false));
-		
-		return this;
-		
-	}
+//	public ControlsSchemeBuilder useDPadForRobotRelativeDriving(CommandXboxController controller) {
+//
+//		Swerve.DriveMode mode = Swerve.DriveMode.FIELD_RELATIVE;
+//		LinearVelocity speed = FeetPerSecond.of(1.5);
+//		DoubleSupplier rotation = InputUtilities.getRotationDoubleSupplier(controller);
+//
+//		controller.povUp().whileTrue(this.robot.swerve.commands.drive(() -> new ChassisSpeeds(speed, InchesPerSecond.of(0), rotation.getAsDouble()), mode, false));
+//		controller.povDown().whileTrue(this.robot.swerve.commands.drive(() -> new ChassisSpeeds(speed.times(-1), InchesPerSecond.of(0), InputUtilities.getRotationDoubleSupplier(controller)), mode, false));
+//		controller.povDown().whileTrue(this.robot.swerve.commands.driveForward(speed.times(-1), mode));
+//		controller.povLeft().whileTrue(this.robot.swerve.commands.driveLeft(speed, mode));
+//		controller.povRight().whileTrue(this.robot.swerve.commands.driveLeft(speed.times(-1), mode));
+//
+//		return this;
+//
+//	}
 	
-	public ControlsSchemeBuilder useStartToResetFieldHeading(CommandXboxController controller) {
+	public InputSchemeBuilder useStartToResetFieldHeading(CommandXboxController controller) {
 		
 		controller.start().onTrue(
 			this.robot.swerve.commands.calibrateFieldRelativeHeading()
@@ -107,7 +104,7 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder useTriggersToLoad(CommandXboxController controller) {
+	public InputSchemeBuilder useTriggersToLoad(CommandXboxController controller) {
 		
 		Command goToNearestCoralStation = this.robot.swerve.commands.goToPosition(() ->
 			RobotPoseBuilder.getCoralStationLoadingPose(
@@ -127,7 +124,7 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder useStartButtonToCalibrateElevator(CommandXboxController controller) {
+	public InputSchemeBuilder useStartButtonToCalibrateElevator(CommandXboxController controller) {
 		
 		controller.start().onTrue(this.robot.elevator.commands.calibrate());
 		
@@ -135,7 +132,7 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder useABXYToScoreCoral(CommandXboxController controller) {
+	public InputSchemeBuilder useABXYToScoreCoral(CommandXboxController controller) {
 		
 		controller.b().whileTrue(this.robot.complexCommands.scoreOnL1());
 		
@@ -161,7 +158,7 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder usePOVButtonsToSwitchReefScoringModes(
+	public InputSchemeBuilder usePOVButtonsToSwitchReefScoringModes(
 		CommandXboxController controller
 	) {
 		
@@ -173,7 +170,7 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder useTriggersToRemoveAlgae(CommandXboxController controller) {
+	public InputSchemeBuilder useTriggersToRemoveAlgae(CommandXboxController controller) {
 		
 		controller.leftTrigger(TRIGGER_THRESHOLD).whileTrue(
 			this.robot.complexCommands.removeAlgaeAtLevel(ElevatorPosition.L2_ALGAE_REMOVAL)
@@ -187,7 +184,7 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder useBumpersToClimb(CommandXboxController controller) {
+	public InputSchemeBuilder useBumpersToClimb(CommandXboxController controller) {
 		
 		controller.leftBumper().and(controller.rightBumper())
 			.whileTrue(this.robot.climber.commands.deploy());
@@ -196,7 +193,7 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder useYToClimb(CommandXboxController controller) {
+	public InputSchemeBuilder useYToClimb(CommandXboxController controller) {
 		
 		controller.y().whileTrue(
 			this.robot.climber.commands.deploy()
@@ -207,7 +204,7 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder useBackButtonToUnclimb(CommandXboxController controller) {
+	public InputSchemeBuilder useBackButtonToUnclimb(CommandXboxController controller) {
 		
 		controller.back().whileTrue(
 			this.robot.climber.commands.unclimb()
@@ -217,7 +214,7 @@ public class ControlsSchemeBuilder {
 		
 	}
 	
-	public ControlsSchemeBuilder usePovUpToDistanceL4Score(CommandXboxController controller) {
+	public InputSchemeBuilder usePovUpToDistanceL4Score(CommandXboxController controller) {
 		
 		controller.povUp().whileTrue(
 			this.robot.complexCommands.scoreOnL4Distant()

@@ -2,19 +2,19 @@ package frc.robot.controls.controlsschemes;
 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.RobotContainer;
-import frc.robot.controls.ControlsScheme;
-import frc.robot.controls.ControlsSchemeBuilder;
+import frc.robot.controls.InputScheme;
+import frc.robot.controls.InputSchemeBuilder;
 
-public class TestingTeleoperativeControlsScheme implements ControlsScheme {
+public class TestingTeleoperativeInputsScheme implements InputScheme {
 	
 	@Override
-	public void configureControls(
+	public void configureControllerInputs(
 		RobotContainer robotContainer,
 		CommandXboxController controller1,
 		CommandXboxController controller2
 	) {
 		
-		(new ControlsSchemeBuilder(robotContainer))
+		(new InputSchemeBuilder(robotContainer))
 			.configureDefaultRobotCommands()
 			.useControllerJoysticksForDriving(controller1)
 			.useTriggersToLoad(controller1)
@@ -33,7 +33,7 @@ public class TestingTeleoperativeControlsScheme implements ControlsScheme {
 		CommandXboxController controller2
 	) {
 		
-		ControlsScheme.super.periodic(robot, controller1, controller2);
+		InputScheme.super.periodic(robot, controller1, controller2);
 		
 	}
 	
@@ -44,7 +44,7 @@ public class TestingTeleoperativeControlsScheme implements ControlsScheme {
 		CommandXboxController controller2
 	) {
 		
-		ControlsScheme.super.exit(robot, controller1, controller2);
+		InputScheme.super.exit(robot, controller1, controller2);
 		
 	}
 	

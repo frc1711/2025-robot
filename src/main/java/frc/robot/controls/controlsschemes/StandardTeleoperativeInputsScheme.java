@@ -2,25 +2,24 @@ package frc.robot.controls.controlsschemes;
 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.RobotContainer;
-import frc.robot.controls.ControlsScheme;
-import frc.robot.controls.ControlsSchemeBuilder;
+import frc.robot.controls.InputScheme;
+import frc.robot.controls.InputSchemeBuilder;
 
-public class StandardTeleoperativeControlsScheme implements ControlsScheme {
+public class StandardTeleoperativeInputsScheme implements InputScheme {
 	
 	@Override
-	public void configureControls(
+	public void configureControllerInputs(
 		RobotContainer robotContainer,
 		CommandXboxController controller1,
 		CommandXboxController controller2
 	) {
 		
-		(new ControlsSchemeBuilder(robotContainer))
+		(new InputSchemeBuilder(robotContainer))
 			.configureDefaultRobotCommands()
 			.useControllerJoysticksForDriving(controller1)
 			.useRBButtonForSlowMode(controller1)
 			.useYButtonForCoastMode(controller1)
 			.useTriggersToLoad(controller1)
-			.useDPadForRobotRelativeDriving(controller1)
 			.useStartToResetFieldHeading(controller1)
 			.useABXYToScoreCoral(controller2)
 			.usePOVButtonsToSwitchReefScoringModes(controller2)
@@ -38,7 +37,7 @@ public class StandardTeleoperativeControlsScheme implements ControlsScheme {
 		CommandXboxController controller2
 	) {
 		
-		ControlsScheme.super.periodic(robot, controller1, controller2);
+		InputScheme.super.periodic(robot, controller1, controller2);
 		
 	}
 	
@@ -49,7 +48,7 @@ public class StandardTeleoperativeControlsScheme implements ControlsScheme {
 		CommandXboxController controller2
 	) {
 		
-		ControlsScheme.super.exit(robot, controller1, controller2);
+		InputScheme.super.exit(robot, controller1, controller2);
 		
 	}
 	

@@ -3,12 +3,12 @@ package frc.robot.controls;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.RobotContainer;
 
-public interface ControlsScheme {
+public interface InputScheme {
 	
 	/**
 	 * Configures the controls for this control scheme.
 	 */
-	void configureControls(
+	void configureControllerInputs(
 		RobotContainer robotContainer,
 		CommandXboxController controller1,
 		CommandXboxController controller2

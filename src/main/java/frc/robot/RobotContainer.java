@@ -7,16 +7,16 @@ package frc.robot;
 import com.ctre.phoenix6.Orchestra;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import frc.robot.configuration.StatusLightsPattern;
-import frc.robot.controls.ControlsScheme;
-import frc.robot.controls.controlsschemes.StandardTeleoperativeControlsScheme;
+import frc.robot.controls.InputScheme;
+import frc.robot.controls.controlsschemes.StandardTeleoperativeInputsScheme;
 import frc.robot.subsystems.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.util.RaptorsOdometry;
 
 public class RobotContainer {
   
-  protected static final ControlsScheme CONTROLS_SCHEME =
-      new StandardTeleoperativeControlsScheme();
+  protected static final InputScheme CONTROLS_SCHEME =
+      new StandardTeleoperativeInputsScheme();
   
   public final Climber climber;
   
@@ -88,7 +88,7 @@ public class RobotContainer {
   
   public void configureTeleoperativeControls() {
     
-    CONTROLS_SCHEME.configureControls(
+    CONTROLS_SCHEME.configureControllerInputs(
         this,
         this.controller1,
         this.controller2
