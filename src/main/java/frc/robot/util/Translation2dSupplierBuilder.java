@@ -11,17 +11,17 @@ import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.*;
 
-public class PointSupplierBuilder implements Supplier<Translation2d> {
+public class Translation2dSupplierBuilder implements Supplier<Translation2d> {
 	
 	protected final Supplier<Translation2d> supplier;
 	
-	public PointSupplierBuilder(Supplier<Translation2d> initial) {
+	public Translation2dSupplierBuilder(Supplier<Translation2d> initial) {
 		
 		this.supplier = initial;
 		
 	}
 	
-	public PointSupplierBuilder(
+	public Translation2dSupplierBuilder(
 		DoubleSupplier xSupplier,
 		DoubleSupplier ySupplier
 	) {
@@ -43,29 +43,29 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 	 * @param controller The XboxController from which to read the left joystick
 	 * input.
 	 */
-	public static PointSupplierBuilder fromLeftJoystick(
+	public static Translation2dSupplierBuilder fromLeftJoystick(
 		XboxController controller
 	) {
 		
-		return new PointSupplierBuilder(
+		return new Translation2dSupplierBuilder(
 			() -> new Translation2d(controller.getLeftX(), controller.getLeftY())
 		);
 		
 	}
 	
-	public static PointSupplierBuilder fromLeftJoystick(
+	public static Translation2dSupplierBuilder fromLeftJoystick(
 		CommandXboxController controller
 	) {
 		
-		return new PointSupplierBuilder(
+		return new Translation2dSupplierBuilder(
 			() -> new Translation2d(controller.getLeftX(), controller.getLeftY())
 		);
 		
 	}
 	
-	public PointSupplierBuilder swapXY() {
+	public Translation2dSupplierBuilder swapXY() {
 		
-		return new PointSupplierBuilder(() -> {
+		return new Translation2dSupplierBuilder(() -> {
 			
 			Translation2d original = this.supplier.get();
 			
@@ -75,9 +75,9 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 		
 	}
 	
-	public PointSupplierBuilder invertX() {
+	public Translation2dSupplierBuilder invertX() {
 		
-		return new PointSupplierBuilder(() -> {
+		return new Translation2dSupplierBuilder(() -> {
 			
 			Translation2d original = this.supplier.get();
 			
@@ -87,9 +87,9 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 		
 	}
 	
-	public PointSupplierBuilder invertY() {
+	public Translation2dSupplierBuilder invertY() {
 		
-		return new PointSupplierBuilder(() -> {
+		return new Translation2dSupplierBuilder(() -> {
 			
 			Translation2d original = this.supplier.get();
 			
@@ -99,7 +99,7 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 		
 	}
 	
-	public PointSupplierBuilder normalizeXboxJoystickToNWU() {
+	public Translation2dSupplierBuilder normalizeXboxJoystickToNWU() {
 		
 		return this
 			.swapXY()
@@ -108,9 +108,9 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 		
 	}
 	
-	public PointSupplierBuilder withDeadband(double deadband) {
+	public Translation2dSupplierBuilder withDeadband(double deadband) {
 		
-		return new PointSupplierBuilder(() -> {
+		return new Translation2dSupplierBuilder(() -> {
 			
 			Translation2d original = this.supplier.get();
 			
@@ -124,9 +124,9 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 		
 	}
 	
-	public PointSupplierBuilder withScaledDeadband(double deadband) {
+	public Translation2dSupplierBuilder withScaledDeadband(double deadband) {
 		
-		return new PointSupplierBuilder(() -> {
+		return new Translation2dSupplierBuilder(() -> {
 			
 			Translation2d original = this.supplier.get();
 			
@@ -140,9 +140,9 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 		
 	}
 	
-	public PointSupplierBuilder withExponentialCurve(double exponent) {
+	public Translation2dSupplierBuilder withExponentialCurve(double exponent) {
 		
-		return new PointSupplierBuilder(() -> {
+		return new Translation2dSupplierBuilder(() -> {
 			
 			Translation2d original = this.supplier.get();
 			
@@ -156,9 +156,9 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 		
 	}
 	
-	public PointSupplierBuilder withClamp(double minimum, double maximum) {
+	public Translation2dSupplierBuilder withClamp(double minimum, double maximum) {
 		
-		return new PointSupplierBuilder(() -> {
+		return new Translation2dSupplierBuilder(() -> {
 			
 			Translation2d original = this.supplier.get();
 			
@@ -172,9 +172,9 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 		
 	}
 	
-	public PointSupplierBuilder withScaling(double scaling) {
+	public Translation2dSupplierBuilder withScaling(double scaling) {
 		
-		return new PointSupplierBuilder(() -> {
+		return new Translation2dSupplierBuilder(() -> {
 			
 			Translation2d original = this.supplier.get();
 			
@@ -188,14 +188,14 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 		
 	}
 	
-	public PointSupplierBuilder withMaximumSlewRate(double limit) {
+	public Translation2dSupplierBuilder withMaximumSlewRate(double limit) {
 
-		return new PointSupplierBuilder(new Supplier<>() {
+		return new Translation2dSupplierBuilder(new Supplier<>() {
 			SlewRateLimiter xLimiter = new SlewRateLimiter(limit);
 			SlewRateLimiter yLimiter = new SlewRateLimiter(limit);
 			@Override
 			public Translation2d get() {
-				Translation2d original = PointSupplierBuilder.this.get();
+				Translation2d original = Translation2dSupplierBuilder.this.get();
 				return new Translation2d(
 					Inches.of(this.xLimiter.calculate(original.getMeasureX().in(Inches))),
 					Inches.of(this.yLimiter.calculate(original.getMeasureY().in(Inches)))
