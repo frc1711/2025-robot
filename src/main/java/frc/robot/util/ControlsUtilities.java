@@ -161,7 +161,11 @@ public class ControlsUtilities {
 		);
 		
 	}
-	
-//	public static Pose2d get
+
+	public static Translation2d applyMaxNorm(Translation2d translation, double maxNorm) {
+
+		return translation.times(Math.min(maxNorm/translation.getNorm(), 1));
+
+	}
     
 }
