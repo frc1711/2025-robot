@@ -4,6 +4,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.math.DoubleUtilities;
 
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -115,7 +116,7 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 			
 			if (original.getNorm() <= 0) return Translation2d.kZero;
 			else return new Translation2d(
-				ControlsUtilities.applyDeadband(original.getNorm(), deadband),
+				DoubleUtilities.applyDeadband(original.getNorm(), deadband),
 				original.getAngle()
 			);
 			
@@ -131,7 +132,7 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 			
 			if (original.getNorm() <= 0) return Translation2d.kZero;
 			else return new Translation2d(
-				ControlsUtilities.applyScaledDeadband(original.getNorm(), deadband),
+				DoubleUtilities.applyScaledDeadband(original.getNorm(), deadband),
 				original.getAngle()
 			);
 			
@@ -147,7 +148,7 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 			
 			if (original.getNorm() <= 0) return Translation2d.kZero;
 			else return new Translation2d(
-				ControlsUtilities.applyExponentialCurve(original.getNorm(), exponent),
+				DoubleUtilities.applyExponentialCurve(original.getNorm(), exponent),
 				original.getAngle()
 			);
 			
@@ -163,7 +164,7 @@ public class PointSupplierBuilder implements Supplier<Translation2d> {
 			
 			if (original.getNorm() <= 0) return Translation2d.kZero;
 			else return new Translation2d(
-				ControlsUtilities.applyClamp(original.getNorm(), minimum, maximum),
+				DoubleUtilities.applyClamp(original.getNorm(), minimum, maximum),
 				original.getAngle()
 			);
 			

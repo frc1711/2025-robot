@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.configuration.RobotDimensions;
 import frc.robot.configuration.SwerveModuleConfiguration;
+import frc.robot.math.DoubleUtilities;
 
 import static edu.wpi.first.units.Units.*;
 
@@ -93,7 +94,7 @@ public class SwerveModule extends SubsystemBase {
 			SparkMaxConfig newConfig = new SparkMaxConfig();
 			
 			newConfig.absoluteEncoder.zeroOffset(
-				ControlsUtilities.normalizeToRange(
+				DoubleUtilities.normalizeToRange(
 					Degrees.of(degrees).in(Rotations),
 					0,
 					1
@@ -238,7 +239,7 @@ public class SwerveModule extends SubsystemBase {
 	public Angle getSteeringHeading() {
 		
 		// Normalize the steering angle value to the range [-180, 180].
-		return Degrees.of(ControlsUtilities.normalizeToRange(
+		return Degrees.of(DoubleUtilities.normalizeToRange(
 			this.steerEncoder.getPosition(),
 			-180,
 			180
@@ -302,7 +303,7 @@ public class SwerveModule extends SubsystemBase {
 		Angle steerHeadingError = this.getSteeringHeading()
 			.minus(this.getSteeringHeadingSetpoint());
 		
-		return Degrees.of(ControlsUtilities.normalizeToRange(
+		return Degrees.of(DoubleUtilities.normalizeToRange(
 			steerHeadingError.in(Degrees),
 			-180,
 			180

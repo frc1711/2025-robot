@@ -3,6 +3,7 @@ package frc.robot.util;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.math.DoubleUtilities;
 
 import java.util.function.DoubleSupplier;
 
@@ -75,7 +76,7 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 	public DoubleSupplierBuilder withDeadband(double deadband) {
 		
 		return new DoubleSupplierBuilder(() ->
-			ControlsUtilities.applyDeadband(
+			DoubleUtilities.applyDeadband(
 				this.supplier.getAsDouble(),
 				deadband
 			)
@@ -86,7 +87,7 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 	public DoubleSupplierBuilder withScaledDeadband(double deadband) {
 		
 		return new DoubleSupplierBuilder(() ->
-			ControlsUtilities.applyScaledDeadband(
+			DoubleUtilities.applyScaledDeadband(
 				this.supplier.getAsDouble(),
 				deadband
 			)
@@ -97,7 +98,7 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 	public DoubleSupplierBuilder withExponentialCurve(double power) {
 		
 		return new DoubleSupplierBuilder(() ->
-			ControlsUtilities.applyExponentialCurve(
+			DoubleUtilities.applyExponentialCurve(
 				this.supplier.getAsDouble(),
 				power
 			)
@@ -108,7 +109,7 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 	public DoubleSupplierBuilder withClamp(double minimum, double maximum) {
 		
 		return new DoubleSupplierBuilder(() ->
-			ControlsUtilities.applyClamp(
+			DoubleUtilities.applyClamp(
 				this.supplier.getAsDouble(),
 				minimum,
 				maximum
