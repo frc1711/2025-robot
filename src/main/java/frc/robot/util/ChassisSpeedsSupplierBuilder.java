@@ -6,6 +6,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.InputUtilities;
+import frc.robot.math.Translation2dUtilities;
 import frc.robot.subsystems.Swerve;
 
 import java.util.function.DoubleSupplier;
@@ -146,7 +147,7 @@ public class ChassisSpeedsSupplierBuilder implements Supplier<ChassisSpeeds> {
         double maxVelocityMetersPerSecond = Swerve.MAX_LINEAR_VELOCITY.in(MetersPerSecond);
         return new ChassisSpeedsSupplierBuilder(() -> {
             ChassisSpeeds chassisSpeeds = this.get();
-            Translation2d translation = ControlsUtilities.applyMaxNorm(new Translation2d(
+            Translation2d translation = Translation2dUtilities.applyMaxNorm(new Translation2d(
                 chassisSpeeds.vxMetersPerSecond,
                 chassisSpeeds.vyMetersPerSecond
             ), maxVelocityMetersPerSecond);

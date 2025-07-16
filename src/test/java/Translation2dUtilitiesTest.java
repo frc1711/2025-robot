@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 import static edu.wpi.first.units.Units.Meters;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ControlsUtilitiesTest {
+public class Translation2dUtilitiesTest {
 	
 	static AprilTagFieldLayout aprilTags =
 		AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
