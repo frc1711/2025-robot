@@ -18,7 +18,11 @@ public enum DoublePreference {
     
     REAR_LEFT_SWERVE_MODULE_ENCODER_OFFSET_DEGREES("Rear Left Swerve Module Encoder Offset", 0),
     
-    REAR_RIGHT_SWERVE_MODULE_ENCODER_OFFSET_DEGREES("Rear Right Swerve Module Encoder Offset", 0);
+    REAR_RIGHT_SWERVE_MODULE_ENCODER_OFFSET_DEGREES("Rear Right Swerve Module Encoder Offset", 0),
+
+    JOYSTICK_DEADBAND("Joystick Deadband", 0.05),
+
+    LINEAR_INPUT_POWER_SMOOTHING("Linear Input Power Smoothing", 3);
     
     /**
      * The key of the preference.
