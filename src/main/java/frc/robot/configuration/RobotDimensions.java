@@ -60,8 +60,7 @@ public final class RobotDimensions {
 			ELEVATOR_STAGE_1_TRAVEL_PER_SHAFT_REVOLUTION.div(ELEVATOR_GEARBOX_RATIO);
 	
 	public static final Distance MAILBOX_LR_OFFSET_TO_ROBOT_CENTER =
-//		Inches.of(11);
-		Inches.of(12);
+		Inches.of(11.25);
 	
 	public static final Distance REEF_BRANCH_SEPARATION_DISTANCE =
 		Inches.of(13);
