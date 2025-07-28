@@ -84,22 +84,6 @@ public class RobotPoseBuilder {
 	}
 
 	/**
-	 * Returns a pose facing the AprilTag with the given ID.
-	 *
-	 * @param tagID The ID of the AprilTag to face.
-	 * @return A RobotPoseBuilder representing a pose facing the AprilTag with
-	 * the given ID.
-	 */
-	public static RobotPoseBuilder getAprilTagFacingPose(int tagID) {
-
-		return RobotPoseBuilder.getAprilTagFacingPose(
-			tagID,
-			Inches.of(1.5)
-		);
-
-	}
-
-	/**
 	 * Returns a pose facing the AprilTag with the given ID, with an additional
 	 * offset from the robot's face to the tag.
 	 *
@@ -119,6 +103,22 @@ public class RobotPoseBuilder {
 				RobotDimensions.ROBOT_LENGTH.div(2).minus(extraOffset).times(-1),
 				Inches.of(0)
 			));
+
+	}
+
+	/**
+	 * Returns a pose facing the AprilTag with the given ID.
+	 *
+	 * @param tagID The ID of the AprilTag to face.
+	 * @return A RobotPoseBuilder representing a pose facing the AprilTag with
+	 * the given ID.
+	 */
+	public static RobotPoseBuilder getAprilTagFacingPose(int tagID) {
+
+		return RobotPoseBuilder.getAprilTagFacingPose(
+			tagID,
+			Inches.of(0)
+		);
 
 	}
 
