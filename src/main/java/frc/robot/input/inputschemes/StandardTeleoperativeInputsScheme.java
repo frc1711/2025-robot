@@ -23,7 +23,6 @@ public class StandardTeleoperativeInputsScheme implements InputScheme {
 			.useStartToResetFieldHeading(controller1)
 			.useABXYToScoreCoral(controller2)
 			.usePOVButtonsToSwitchReefScoringModes(controller2)
-			.useTriggersToRemoveAlgae(controller2)
 			.useBumpersToClimb(controller2)
 			.useBackButtonToUnclimb(controller2)
 			.useStartButtonToCalibrateElevator(controller2);
