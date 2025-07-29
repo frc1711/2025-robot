@@ -43,7 +43,7 @@ public class RaptorsOdometry extends SubsystemBase {
 		
 		return RobotPoseBuilder.fromCenterFieldPose()
 			.withFieldRelativeHeading(Rotation2d.k180deg)
-			.toPose();
+			.get();
 		
 	}
 	
