@@ -562,7 +562,7 @@ public class Swerve extends SubsystemBase {
 					);
 					
 					double maxAcceleration = 96;
-					double maxDeceleration = 96;
+					double maxDeceleration = 60;
 					double maxVelocityToStop = Math.sqrt(2 * maxDeceleration * inchesRemaining);
 					double currentVelocity = Swerve.this.getLinearVelocity().in(InchesPerSecond);
 					double desiredVelocity = currentVelocity < maxVelocityToStop
