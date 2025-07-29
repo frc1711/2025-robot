@@ -210,7 +210,9 @@ public class ChassisSpeedsSupplierBuilder implements Supplier<ChassisSpeeds> {
 
         ChassisSpeedsSlewRateLimiter limiter = new ChassisSpeedsSlewRateLimiter(
             Swerve.MAX_LINEAR_ACCELERATION,
-            Swerve.MAX_ANGULAR_ACCELERATION
+            Swerve.MAX_LINEAR_DECELERATION,
+            Swerve.MAX_ANGULAR_ACCELERATION,
+            Swerve.MAX_ANGULAR_DECELERATION
         );
 
         return new ChassisSpeedsSupplierBuilder(() -> limiter.calculate(this.get()));
