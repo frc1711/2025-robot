@@ -106,19 +106,17 @@ public class InputSchemeBuilder {
 	
 	public InputSchemeBuilder useTriggersToLoad(CommandXboxController controller) {
 		
-		Command goToNearestCoralStation = this.robot.swerve.commands.goToPosition(() ->
-			RobotPoseBuilder.getCoralStationLoadingPose(
-				robot.odometry.getFieldThird().getCoralStationAprilTagID()
-			).toPose(),
-			InchesPerSecond.of(80),
-			Inches.of(0.5),
-			Degrees.of(2),
-			null
-		);
-		
 		controller.leftTrigger(TRIGGER_THRESHOLD)
 			.and(controller.rightTrigger(TRIGGER_THRESHOLD))
-			.whileTrue(goToNearestCoralStation);
+			.whileTrue(
+				this.robot.swerve.commands.goToPosition(
+					RobotPoseBuilder.getCoralStationLoadingPose(robot),
+					InchesPerSecond.of(80),
+					Inches.of(0.5),
+					Degrees.of(2),
+					null
+				)
+			);
 		
 		return this;
 		
