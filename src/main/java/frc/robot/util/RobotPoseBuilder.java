@@ -7,12 +7,12 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
+import frc.robot.RobotContainer;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.RobotDimensions;
 
 import java.util.function.Supplier;
 
-import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
 
 /**
@@ -186,6 +186,25 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 		return RobotPoseBuilder.getAprilTagFacingPose(tagID)
 			.withRobotRelativeHeading(Rotation2d.k180deg);
 		
+	}
+
+	/**
+	 * Returns a RobotPoseBuilder representing a pose for loading coral from the
+	 * nearest coral loading station.
+	 *
+	 * @param robot The RobotContainer instance for which to return the
+	 * requested pose.   
+	 * @return A RobotPoseBuilder representing a pose for loading coral from the
+	 * nearest coral loading station.
+	 */
+	public static RobotPoseBuilder getCoralStationLoadingPose(
+		RobotContainer robot
+	) {
+		
+		return RobotPoseBuilder.getCoralStationLoadingPose(
+			robot.odometry.getFieldThird().getCoralStationAprilTagID()
+		);
+
 	}
 
 	/**
