@@ -11,7 +11,7 @@ import frc.robot.Robot;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.RobotDimensions;
 
-import java.util.List;
+import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
@@ -19,7 +19,7 @@ import static edu.wpi.first.units.Units.Inches;
 /**
  * A builder class for creating and manipulating robot poses.
  */
-public class RobotPoseBuilder {
+public class RobotPoseBuilder implements Supplier<Pose2d> {
 
 	/**
 	 * The underlying pose representing the current 'state' of the pose being
@@ -440,4 +440,10 @@ public class RobotPoseBuilder {
 		
 	}
 	
+	@Override
+	public Pose2d get() {
+
+		return this.pose;
+
+	}
 }

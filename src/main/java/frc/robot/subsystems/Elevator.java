@@ -170,21 +170,20 @@ public class Elevator extends SubsystemBase {
 			
 		}
 		
-		public Command waitToReachHeight(
+		public Command waitUntilAtPosition(
 			ElevatorPosition position,
 			Distance tolerance
 		) {
 			
-			return edu.wpi.first.wpilibj2.command.Commands.waitUntil(
-				() -> Elevator.this.getPosition().getStage2TravelOffset()
-					.isNear(position.getStage2TravelOffset(), tolerance)
-			);
+			return edu.wpi.first.wpilibj2.command.Commands
+				.waitUntil(Elevator.this.triggers.isAtPosition(position, tolerance));
 			
 		}
 		
-		public Command waitToReachHeight(ElevatorPosition position) {
-			
-			return this.waitToReachHeight(position, Inches.of(0.125));
+		public Command waitUntilAtPosition(ElevatorPosition position) {
+
+			return edu.wpi.first.wpilibj2.command.Commands
+				.waitUntil(Elevator.this.triggers.isAtPosition(position));
 			
 		}
 		
@@ -238,13 +237,18 @@ public class Elevator extends SubsystemBase {
 	
 	public class Triggers {
 		
-		public Trigger isAtPosition(ElevatorPosition position) {
-			
-			// todo -- use same tolerance as other place
+		public Trigger isAtPosition(ElevatorPosition position, Distance tolerance) {
+
 			return new Trigger(() ->
 				Elevator.this.getPosition().getStage2TravelOffset()
-					.isNear(position.getStage2TravelOffset(), Inches.of(0.5))
+					.isNear(position.getStage2TravelOffset(), tolerance)
 			);
+			
+		}
+		
+		public Trigger isAtPosition(ElevatorPosition position) {
+			
+			return this.isAtPosition(position, Inches.of(0.5));
 			
 		}
 		
