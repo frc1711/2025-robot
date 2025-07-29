@@ -169,14 +169,20 @@ public class ChassisSpeedsSupplierBuilder implements Supplier<ChassisSpeeds> {
             );
 
             Translation2d newLinearSpeeds = new Translation2d(
-                originalLinearSpeeds.getNorm() * Swerve.SLOW_MODE_TRANSLATION_MULTIPLIER,
+                originalLinearSpeeds.getNorm() * (
+                    Swerve.SLOW_MODE_MAX_LINEAR_VELOCITY.in(InchesPerSecond) /
+                    Swerve.MAX_LINEAR_VELOCITY.in(InchesPerSecond)
+                ),
                 originalLinearSpeeds.getAngle()
             );
 
             return new ChassisSpeeds(
                 newLinearSpeeds.getX(),
                 newLinearSpeeds.getY(),
-                chassisSpeeds.omegaRadiansPerSecond * Swerve.SLOW_MODE_ROTATION_MULTIPLIER
+                chassisSpeeds.omegaRadiansPerSecond * (
+                    Swerve.SLOW_MODE_MAX_ANGULAR_VELOCITY.in(DegreesPerSecond) /
+                    Swerve.MAX_ANGULAR_VELOCITY.in(DegreesPerSecond)
+                )
             );
 
         });
