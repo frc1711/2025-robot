@@ -4,7 +4,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.math.DoubleUtilities;
+import frc.robot.configuration.DoublePreference;
 
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -61,6 +61,25 @@ public class Translation2dSupplierBuilder implements Supplier<Translation2d> {
 			() -> new Translation2d(controller.getLeftX(), controller.getLeftY())
 		);
 		
+	}
+
+	/**
+	 * Returns a Translation2dSupplierBuilder for controlling the translation of
+	 * the drivetrain.
+	 *
+	 * @param controller The XboxController from which to read the left joystick
+	 * input (to use as the translation input).
+	 * @return A Translation2dSupplierBuilder for controlling the translation of
+	 * the drivetrain.
+	 */
+	public static Supplier<Translation2d> getTranslationPointSupplier(CommandXboxController controller) {
+
+		return Translation2dSupplierBuilder.fromLeftJoystick(controller)
+				.normalizeXboxJoystickToNWU()
+				.withClamp(-1, 1)
+				.withScaledDeadband(DoublePreference.JOYSTICK_DEADBAND.get())
+				.withExponentialCurve(DoublePreference.LINEAR_INPUT_POWER_SMOOTHING.get());
+
 	}
 	
 	public Translation2dSupplierBuilder swapXY() {
