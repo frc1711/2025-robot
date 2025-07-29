@@ -5,7 +5,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.InputUtilities;
+import frc.robot.math.DoubleSupplierBuilder;
+import frc.robot.math.Translation2dSupplierBuilder;
 import frc.robot.math.Translation2dUtilities;
 import frc.robot.subsystems.Swerve;
 
@@ -72,8 +73,10 @@ public class ChassisSpeedsSupplierBuilder implements Supplier<ChassisSpeeds> {
     
     public static ChassisSpeedsSupplierBuilder fromControllerJoysticks(CommandXboxController controller) {
 
-        Supplier<Translation2d> translationInput = InputUtilities.getTranslationPointSupplier(controller);
-        DoubleSupplier rotationInput = InputUtilities.getRotationDoubleSupplier(controller);
+        Supplier<Translation2d> translationInput =
+            Translation2dSupplierBuilder.getTranslationPointSupplier(controller);
+        DoubleSupplier rotationInput =
+            DoubleSupplierBuilder.getRotationDoubleSupplier(controller);
 
         return new ChassisSpeedsSupplierBuilder(() -> {
             double maxVelocityMetersPerSecond = Swerve.MAX_LINEAR_VELOCITY.in(MetersPerSecond);
