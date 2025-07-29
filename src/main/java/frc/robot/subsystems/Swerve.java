@@ -664,7 +664,9 @@ public class Swerve extends SubsystemBase {
 					
 					this.thetaController.enableContinuousInput(-180, 180);
 					this.updateSetpoint();
-					Swerve.this.odometry.vision.setAprilTagFilter(aprilTagFilter);
+					if (aprilTagFilter != null) {
+						Swerve.this.odometry.vision.setAprilTagFilter(aprilTagFilter.get());
+					}
 					Swerve.this.odometry.setDisplaySetpoint(desiredPose);
 				
 				}
