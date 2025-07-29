@@ -29,7 +29,47 @@ public class ChassisSpeedsSupplierBuilder implements Supplier<ChassisSpeeds> {
         return new ChassisSpeedsSupplierBuilder(ChassisSpeeds::new);
 
     }
+    
+    public static ChassisSpeedsSupplierBuilder forwards(LinearVelocity velocity) {
+        
+        return new ChassisSpeedsSupplierBuilder(() -> new ChassisSpeeds(
+            velocity,
+            InchesPerSecond.of(0),
+            DegreesPerSecond.of(0)
+        ));
+        
+    }
+    
+    public static ChassisSpeedsSupplierBuilder backwards(LinearVelocity velocity) {
+        
+        return new ChassisSpeedsSupplierBuilder(() -> new ChassisSpeeds(
+            velocity.times(-1),
+            InchesPerSecond.of(0),
+            DegreesPerSecond.of(0)
+        ));
+        
+    }
 
+    public static ChassisSpeedsSupplierBuilder left(LinearVelocity velocity) {
+
+        return new ChassisSpeedsSupplierBuilder(() -> new ChassisSpeeds(
+                InchesPerSecond.of(0),
+                velocity,
+                DegreesPerSecond.of(0)
+        ));
+
+    }
+
+    public static ChassisSpeedsSupplierBuilder right(LinearVelocity velocity) {
+
+        return new ChassisSpeedsSupplierBuilder(() -> new ChassisSpeeds(
+            InchesPerSecond.of(0),
+            velocity.times(-1),
+            DegreesPerSecond.of(0)
+        ));
+
+    }
+    
     public static ChassisSpeedsSupplierBuilder fromControllerJoysticks(CommandXboxController controller) {
 
         Supplier<Translation2d> translationInput = InputUtilities.getTranslationPointSupplier(controller);
