@@ -6,10 +6,16 @@ import edu.wpi.first.wpilibj.Timer;
 public abstract class SlewRateLimiter2D<T> {
 
     /**
-     * The maximum rate of change allowed in the overall magnitude of the
+     * The maximum rate of positive change allowed in the overall magnitude of
+     * the Translation2d per second.
+     */
+    protected final double positiveRateLimit;
+
+    /**
+     * The maximum rate of negative change in the overall magnitude of the
      * Translation2d per second.
      */
-    protected final double rateLimit;
+    protected final double negativeRateLimit;
 
     /**
      * The last value that was returned by the calculate method.
@@ -24,12 +30,31 @@ public abstract class SlewRateLimiter2D<T> {
     /**
      * Initializes a new SlewRateLimiter2D with the specified rate limit (in units per second).
      *
-     * @param rateLimit The maximum rate of change allowed in the overall magnitude of the
-     * Translation2d per second.
+     * @param rateLimit The maximum rate of change allowed in the overall
+     * magnitude of the Translation2d per second.
      */
     public SlewRateLimiter2D(double rateLimit) {
 
-        this.rateLimit = rateLimit;
+        this(rateLimit, rateLimit);
+
+    }
+
+    /**
+     * Initializes a new SlewRateLimiter2D with the specified positive and
+     * negative rate limits (in units per second).
+     *
+     * @param positiveRateLimit The maximum rate of positive change allowed in
+     * the overall magnitude of the Translation2d per second.
+     * @param negativeRateLimit The maximum rate of negative change allowed in
+     * the overall magnitude of the Translation2d per second.
+     */
+    public SlewRateLimiter2D(
+        double positiveRateLimit,
+        double negativeRateLimit
+    ) {
+
+        this.positiveRateLimit = Math.abs(positiveRateLimit);
+        this.negativeRateLimit = Math.abs(negativeRateLimit);
         this.lastValue = new Translation2d(0, 0);
         this.lastTime = Timer.getFPGATimestamp();
 
@@ -42,14 +67,18 @@ public abstract class SlewRateLimiter2D<T> {
     public T calculate(T value) {
 
         double currentTime = Timer.getFPGATimestamp();
-        double deltaTime = currentTime - lastTime;
+        double deltaTime = currentTime - this.lastTime;
+
+        this.lastTime = currentTime;
 
         if (deltaTime <= 0) return value;
 
         Translation2d currentValue = this.toTranslation2d(value);
         Translation2d delta = currentValue.minus(lastValue);
 
-        double maximumDelta = this.rateLimit * deltaTime;
+        boolean isApproachingZero = currentValue.getNorm() < this.lastValue.getNorm();
+        double rateLimit = isApproachingZero ? this.negativeRateLimit : this.positiveRateLimit;
+        double maximumDelta = rateLimit * deltaTime;
         double requestedDelta = delta.getNorm();
         double scalingFactor = Math.min(maximumDelta/requestedDelta, 1);
 
