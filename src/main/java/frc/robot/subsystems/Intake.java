@@ -114,6 +114,38 @@ public class Intake extends SubsystemBase {
 			return this.unfeed(1);
 			
 		}
+
+		public Command waitUntilCoralIsInUpperIntake() {
+
+			return edu.wpi.first.wpilibj2.command.Commands.waitUntil(
+				Intake.this.triggers.isCoralInUpperIntake()
+			);
+
+		}
+		
+		public Command waitUntilCoralIsNotInUpperIntake() {
+			
+			return edu.wpi.first.wpilibj2.command.Commands.waitUntil(
+				Intake.this.triggers.isCoralInUpperIntake().negate()
+			);
+			
+		}
+
+		public Command waitUntilCoralIsInLowerIntake() {
+
+			return edu.wpi.first.wpilibj2.command.Commands.waitUntil(
+				Intake.this.triggers.isCoralInLowerIntake()
+			);
+
+		}
+
+		public Command waitUntilCoralIsNotInLowerIntake() {
+
+			return edu.wpi.first.wpilibj2.command.Commands.waitUntil(
+				Intake.this.triggers.isCoralInLowerIntake().negate()
+			);
+
+		}
 		
 	}
 	
