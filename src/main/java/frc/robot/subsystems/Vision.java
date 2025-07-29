@@ -136,13 +136,6 @@ public class Vision {
 				Angle angularDeviation = baselineAngularDeviation.plus(possibleRobotRotation);
 				double angularDeviationDegrees = angularDeviation.in(Degrees);
 				
-				System.out.printf(
-					"using std devs: %.2fm (%.2fin), %.2fdeg\n",
-					linearDeviationMeters,
-					linearDeviation.in(Inches),
-					angularDeviationDegrees
-				);
-				
 				return new VisionMeasurement(
 					estimate.pose,
 					estimate.timestampSeconds,
