@@ -1,4 +1,4 @@
-package frc.robot.util;
+package frc.robot.math;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
