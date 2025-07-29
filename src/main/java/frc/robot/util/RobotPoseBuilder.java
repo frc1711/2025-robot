@@ -7,7 +7,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.robot.Robot;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.RobotDimensions;
 
@@ -183,12 +182,9 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * nearest coral loading station.
 	 */
 	public static RobotPoseBuilder getCoralStationLoadingPose(int tagID) {
-
+		
 		return RobotPoseBuilder.getAprilTagFacingPose(tagID)
-			.withRobotRelativeTranslation(new Translation2d(
-				Inches.of(0),
-				Feet.of(-1)
-			));
+			.withRobotRelativeHeading(Rotation2d.k180deg);
 		
 	}
 
