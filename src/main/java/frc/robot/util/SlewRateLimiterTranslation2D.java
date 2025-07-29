@@ -8,6 +8,13 @@ public class SlewRateLimiterTranslation2D extends SlewRateLimiter2D<Translation2
         super(rateLimit);
     }
 
+    public SlewRateLimiterTranslation2D(
+        double positiveRateLimit,
+        double negativeRateLimit
+    ) {
+        super(positiveRateLimit, negativeRateLimit);
+    }
+
     @Override
     protected Translation2d toTranslation2d(Translation2d value) {
         return value;
