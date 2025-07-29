@@ -301,6 +301,25 @@ public class Swerve extends SubsystemBase {
 				);
 			}
 		);
+
+		builder.addDoubleProperty(
+			"Distance to Scoring Pose (in)",
+				() -> {
+
+					Pose2d currentPose = this.odometry.getPose();
+					int tagID = this.odometry.getNearestReefAprilTag().ID;
+					Pose2d leftScoringPose = RobotPoseBuilder.getReefScoringPose(tagID, ReefAlignment.LEFT).toPose();
+					Pose2d rightScoringPose = RobotPoseBuilder.getReefScoringPose(tagID, ReefAlignment.RIGHT).toPose();
+					double distanceToLeft = currentPose.minus(leftScoringPose).getTranslation().getNorm();
+					double distanceToRight = currentPose.minus(rightScoringPose).getTranslation().getNorm();
+
+					return distanceToLeft < distanceToRight
+						? Meters.of(distanceToLeft).in(Inches)
+						: Meters.of(distanceToRight).in(Inches);
+
+				},
+				null
+		);
 		
 	}
 	
