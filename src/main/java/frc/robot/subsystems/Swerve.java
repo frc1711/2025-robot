@@ -28,6 +28,7 @@ import frc.robot.devicewrappers.RaptorsNavX;
 import frc.robot.util.*;
 
 import java.util.*;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -299,9 +300,9 @@ public class Swerve extends SubsystemBase {
 				() -> {
 
 					Pose2d currentPose = this.odometry.getPose();
-					int tagID = this.odometry.getNearestReefAprilTag().ID;
-					Pose2d leftScoringPose = RobotPoseBuilder.getReefScoringPose(tagID, ReefAlignment.LEFT).toPose();
-					Pose2d rightScoringPose = RobotPoseBuilder.getReefScoringPose(tagID, ReefAlignment.RIGHT).toPose();
+					IntSupplier tagID = () -> this.odometry.getNearestReefAprilTag().ID;
+					Pose2d leftScoringPose = RobotPoseBuilder.getReefScoringPose(tagID, ReefAlignment.LEFT).get();
+					Pose2d rightScoringPose = RobotPoseBuilder.getReefScoringPose(tagID, ReefAlignment.RIGHT).get();
 					double distanceToLeft = currentPose.minus(leftScoringPose).getTranslation().getNorm();
 					double distanceToRight = currentPose.minus(rightScoringPose).getTranslation().getNorm();
 
