@@ -163,6 +163,12 @@ public class Intake extends SubsystemBase {
 			
 		}
 		
+		public Trigger isCoralInIntake() {
+			
+			return this.isCoralInUpperIntake().or(this.isCoralInLowerIntake());
+			
+		}
+		
 	}
 	
 }
