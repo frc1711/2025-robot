@@ -11,6 +11,7 @@ import frc.robot.RobotContainer;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.RobotDimensions;
 
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.Inches;
@@ -24,16 +25,16 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * The underlying pose representing the current 'state' of the pose being
 	 * built.
 	 */
-	protected final Pose2d pose;
+	protected final Supplier<Pose2d> poseSupplier;
 
 	/**
 	 * Initializes a new RobotPoseBuilder with the given pose.
 	 *
-	 * @param pose The initial pose to build upon.
+	 * @param poseSupplier The initial pose to build upon.
 	 */
-	protected RobotPoseBuilder(Pose2d pose) {
+	protected RobotPoseBuilder(Supplier<Pose2d> poseSupplier) {
 	
-		this.pose = pose;
+		this.poseSupplier = poseSupplier;
 	
 	}
 
@@ -45,7 +46,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 */
 	public static RobotPoseBuilder fromPose(Pose2d pose) {
 		
-		return new RobotPoseBuilder(pose);
+		return new RobotPoseBuilder(() -> pose);
 		
 	}
 
@@ -58,7 +59,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 */
 	public static RobotPoseBuilder fromCenterFieldPose() {
 		
-		return new RobotPoseBuilder(new Pose2d(
+		return new RobotPoseBuilder(() -> new Pose2d(
 			VirtualField.FIELD_LENGTH.div(2),
 			VirtualField.FIELD_WIDTH.div(2),
 			Rotation2d.kZero
@@ -74,10 +75,10 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @return A RobotPoseBuilder representing the pose of the AprilTag with
 	 * the given ID.
 	 */
-	public static RobotPoseBuilder getAprilTagPose(int tagID) {
+	public static RobotPoseBuilder getAprilTagPose(IntSupplier tagID) {
 
 		return new RobotPoseBuilder(
-			AprilTagHelper.getAprilTag(tagID).pose.toPose2d()
+			() -> AprilTagHelper.getAprilTag(tagID.getAsInt()).pose.toPose2d()
 		);
 
 	}
@@ -92,7 +93,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * the given ID and an additional offset.
 	 */
 	public static RobotPoseBuilder getAprilTagFacingPose(
-		int tagID,
+		IntSupplier tagID,
 		Distance extraOffset
 	) {
 
@@ -112,7 +113,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @return A RobotPoseBuilder representing a pose facing the AprilTag with
 	 * the given ID.
 	 */
-	public static RobotPoseBuilder getAprilTagFacingPose(int tagID) {
+	public static RobotPoseBuilder getAprilTagFacingPose(IntSupplier tagID) {
 
 		return RobotPoseBuilder.getAprilTagFacingPose(
 			tagID,
@@ -132,7 +133,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @return A RobotPoseBuilder representing a pose for scoring on the reef.
 	 */
 	public static RobotPoseBuilder getReefScoringPose(
-		int tagID,
+		IntSupplier tagID,
 		ReefAlignment alignment
 	) {
 
@@ -160,7 +161,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * vision camera.
 	 */
 	public static RobotPoseBuilder getReefCalibrationPose(
-		int tagID,
+		IntSupplier tagID,
 		ReefAlignment alignment
 	) {
 		
@@ -181,7 +182,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @return A RobotPoseBuilder representing a pose for loading coral from the
 	 * nearest coral loading station.
 	 */
-	public static RobotPoseBuilder getCoralStationLoadingPose(int tagID) {
+	public static RobotPoseBuilder getCoralStationLoadingPose(IntSupplier tagID) {
 		
 		return RobotPoseBuilder.getAprilTagFacingPose(tagID)
 			.withRobotRelativeHeading(Rotation2d.k180deg);
@@ -202,7 +203,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	) {
 		
 		return RobotPoseBuilder.getCoralStationLoadingPose(
-			robot.odometry.getFieldThird().getCoralStationAprilTagID()
+			robot.odometry.getFieldThird()::getCoralStationAprilTagID
 		);
 
 	}
@@ -217,7 +218,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @return A RobotPoseBuilder representing a pose for calibrating the coral
 	 * station loading pose.
 	 */
-	public static RobotPoseBuilder getCoralStationCalibrationPose(int tagID) {
+	public static RobotPoseBuilder getCoralStationCalibrationPose(IntSupplier tagID) {
 		
 		return RobotPoseBuilder.getCoralStationLoadingPose(tagID)
 			.withRobotRelativeTranslation(new Translation2d(
@@ -240,10 +241,16 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 		Translation2d translation
 	) {
 		
-		return new RobotPoseBuilder(this.pose.plus(new Transform2d(
-			translation.rotateBy(this.pose.getRotation().times(-1)),
-			Rotation2d.kZero
-		)));
+		return new RobotPoseBuilder(() -> {
+
+			Pose2d pose = this.poseSupplier.get();
+			
+			return pose.plus(new Transform2d(
+				translation.rotateBy(pose.getRotation().times(-1)),
+				Rotation2d.kZero
+			));
+			
+		});
 		
 	}
 
@@ -305,7 +312,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 		Translation2d translation
 	) {
 		
-		return new RobotPoseBuilder(this.pose.plus(new Transform2d(
+		return new RobotPoseBuilder(() -> this.poseSupplier.get().plus(new Transform2d(
 			translation,
 			Rotation2d.kZero
 		)));
@@ -323,7 +330,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 */
 	public RobotPoseBuilder withBlueOutHeading(Rotation2d heading) {
 		
-		return new RobotPoseBuilder(this.pose.plus(new Transform2d(
+		return new RobotPoseBuilder(() -> this.poseSupplier.get().plus(new Transform2d(
 			new Translation2d(),
 			heading
 		)));
@@ -422,10 +429,16 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	
 	public RobotPoseBuilder withRobotRelativeHeading(Rotation2d heading) {
 		
-		return new RobotPoseBuilder(new Pose2d(
-			this.pose.getTranslation(),
-			this.pose.getRotation().plus(heading)
-		));
+		return new RobotPoseBuilder(() -> {
+			
+			Pose2d pose = this.poseSupplier.get();
+
+			return new Pose2d(
+				pose.getTranslation(),
+				pose.getRotation().plus(heading)
+			);
+			
+		});
 		
 	}
 
@@ -458,7 +471,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	@Override
 	public Pose2d get() {
 
-		return this.pose;
+		return this.poseSupplier.get();
 
 	}
 }
