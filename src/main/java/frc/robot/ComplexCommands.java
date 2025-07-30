@@ -47,28 +47,25 @@ public class ComplexCommands {
 	
 	public Command autofeedMailbox() {
 		
-		Trigger mailboxIsInPlace = this.robot.elevator.triggers
-			.isAtPosition(ElevatorPosition.L2_SCORING);
-		Trigger coralInIntake = this.robot.intake.triggers.isCoralInUpperIntake()
-			.or(this.robot.intake.triggers.isCoralInLowerIntake());
-	
-		return Commands.waitUntil(mailboxIsInPlace.and(coralInIntake))
-//			.andThen(this.robot.lights.commands.raptorsGreen())
+		Trigger canAcceptMail = this.robot.elevator.triggers
+			.isAtPosition(ElevatorPosition.L2_SCORING)
+			.and(this.robot.intake.triggers.isCoralInIntake());
+		
+		return Commands.waitUntil(canAcceptMail)
 			.andThen(this.robot.intake.commands.feed())
-			.onlyWhile(mailboxIsInPlace.and(coralInIntake));
+			.onlyWhile(canAcceptMail);
 	
 	}
 	
 	public Command autoAcceptMail() {
 		
-		Trigger mailboxIsInPlace = this.robot.elevator.triggers
-			.isAtPosition(ElevatorPosition.RESTING);
-		Trigger coralInIntake = this.robot.intake.triggers
-			.isCoralInLowerIntake();
+		Trigger canAcceptMail = this.robot.elevator.triggers
+			.isAtPosition(ElevatorPosition.RESTING)
+				.and(this.robot.intake.triggers.isCoralInLowerIntake());
 		
-		return Commands.waitUntil(mailboxIsInPlace.and(coralInIntake))
+		return Commands.waitUntil(canAcceptMail)
 			.andThen(this.robot.mailbox.commands.feed(0.25))
-			.onlyWhile(mailboxIsInPlace.and(coralInIntake));
+			.onlyWhile(canAcceptMail);
 
 	}
 	
