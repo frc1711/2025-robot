@@ -1,6 +1,5 @@
 package frc.robot;
 
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -8,7 +7,7 @@ import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.configuration.FieldThird;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.ReefLevel;
-import frc.robot.subsystems.Swerve;
+import frc.robot.util.ChassisSpeedsSupplierBuilder;
 import frc.robot.util.RobotPoseBuilder;
 
 import java.util.Map;
@@ -24,8 +23,10 @@ public enum Auton {
 	),
 	
 	CROSS_THE_LINE("Cross the Line", robot ->
-		robot.swerve.commands.drive(new ChassisSpeeds(InchesPerSecond.of(-15), InchesPerSecond.of(0), DegreesPerSecond.of(0)), Swerve.DriveMode.FIELD_RELATIVE, true)
-			.withTimeout(Seconds.of(4))
+		robot.swerve.commands.drive(
+			ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(15))
+				.withFieldRelative(robot.swerve)
+		).withTimeout(Seconds.of(4))
 	),
 	
 	STANDARD_AUTON("Standard Auton", robot -> {
@@ -37,61 +38,25 @@ public enum Auton {
 		), robot.odometry::getFieldThird);
 
 		Command backUpFromReef = robot.swerve.commands.drive(
-			new ChassisSpeeds(
-				InchesPerSecond.of(-20),
-				InchesPerSecond.of(0),
-				DegreesPerSecond.of(0)
-			),
-			Swerve.DriveMode.ROBOT_RELATIVE,
-			true
+			ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(20))
 		).withTimeout(1);
-		
-		Command goToCoralStation = robot.swerve.commands.goToPosition(() ->
-				RobotPoseBuilder.getCoralStationLoadingPose(
-					robot.odometry.getFieldThird().getCoralStationAprilTagID()
-				).toPose(),
+
+		Command goToCoralStation = robot.swerve.commands.goToPosition(
+			RobotPoseBuilder.getCoralStationLoadingPose(robot),
 			InchesPerSecond.of(80),
 			Inches.of(0.25),
 			Degrees.of(1),
 			null
 		);
-		
-		Command coralStationAlignmentDeadline = robot.swerve.commands.waitUntilAtPosition(
-			() -> RobotPoseBuilder.getCoralStationLoadingPose(
-				robot.odometry.getFieldThird().getCoralStationAprilTagID()
-			).toPose(),
-			Inches.of(0.5),
-			Degrees.of(1)
-		);
 
 		Command driveAgainstCoralStation = robot.swerve.commands.drive(
-			new ChassisSpeeds(
-				InchesPerSecond.of(-10),
-				InchesPerSecond.of(0),
-				DegreesPerSecond.of(0)
-			),
-			Swerve.DriveMode.ROBOT_RELATIVE,
-			true
+			ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(10))
 		);
-		
-		Command coralLoadingDeadline = Commands.waitUntil(
-			robot.intake.triggers.isCoralInUpperIntake()
-		).andThen(
-			robot.complexCommands.autoAcceptMail()
-				.alongWith(robot.complexCommands.autofeedMailbox())
-				.until(robot.intake.triggers.isCoralInLowerIntake())
-		).andThen(
-			robot.complexCommands.autoAcceptMail()
-				.alongWith(robot.complexCommands.autofeedMailbox())
-				.until(robot.intake.triggers.isCoralInLowerIntake().negate())
-		);
-		
-		Command scoreSecondCoral = robot.complexCommands.autoScoreOnReef(ReefLevel.L4, ReefAlignment.RIGHT);
 		
 		Command attemptToScoreSecondCoral = backUpFromReef
-			.andThen(goToCoralStation.withDeadline(coralStationAlignmentDeadline).withTimeout(3))
-			.andThen(driveAgainstCoralStation.withDeadline(coralLoadingDeadline))
-			.andThen(scoreSecondCoral)
+			.andThen(goToCoralStation.withTimeout(Seconds.of(3)))
+			.andThen(driveAgainstCoralStation.withDeadline(robot.complexCommands.waitUntilCoralIsLoaded()))
+			.andThen(robot.complexCommands.autoScoreOnReef(ReefLevel.L4, ReefAlignment.RIGHT))
 			.onlyIf(() -> robot.odometry.getFieldThird() != FieldThird.CENTER);
 		
 		return scoreFirstCoral
@@ -100,21 +65,26 @@ public enum Auton {
 	}),
 	
 	SINGLE_L1_CORAL_CENTER("Single L1 Coral (Center)", robot ->
-		robot.swerve.commands.drive(new ChassisSpeeds(InchesPerSecond.of(-15), InchesPerSecond.of(0), DegreesPerSecond.of(0)), Swerve.DriveMode.FIELD_RELATIVE, true)
-			.withTimeout(Seconds.of(4))
+		robot.swerve.commands.drive(
+			ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(15))
+				.withFieldRelative(robot.swerve)
+		).withTimeout(Seconds.of(4))
 			.andThen(robot.mailbox.commands.feed().withTimeout(2))
 	),
 	
 	SINGLE_L4_CORAL_CENTER("Single L4 Coral (Center)", robot ->
 		new SequentialCommandGroup(
-			robot.swerve.commands.drive(new ChassisSpeeds(InchesPerSecond.of(-15), InchesPerSecond.of(0), DegreesPerSecond.of(0)), Swerve.DriveMode.FIELD_RELATIVE, true).withTimeout(Seconds.of(6)),
-			robot.swerve.commands.drive(new ChassisSpeeds(InchesPerSecond.of(10), InchesPerSecond.of(0), DegreesPerSecond.of(0)), Swerve.DriveMode.FIELD_RELATIVE, true).withTimeout(Seconds.of(0.25)),
+			robot.swerve.commands.drive(ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(15)).withFieldRelative(robot.swerve)).withTimeout(Seconds.of(6)),
+			robot.swerve.commands.drive(ChassisSpeedsSupplierBuilder.forwards(InchesPerSecond.of(10)).withFieldRelative(robot.swerve)).withTimeout(Seconds.of(0.25)),
 			robot.complexCommands.scoreOnL4()
 		)
 	),
 	
 	SINGLE_CORAL("Single Coral", robot ->
-		robot.swerve.commands.drive(new ChassisSpeeds(InchesPerSecond.of(-15), InchesPerSecond.of(0), DegreesPerSecond.of(0)), Swerve.DriveMode.FIELD_RELATIVE, true)
+		robot.swerve.commands.drive(
+			ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(10))
+				.withFieldRelative(robot.swerve)
+		)
 			.until(robot.odometry::hasVisionData)
 			.andThen(robot.complexCommands.autoScoreOnReef(() -> robot.odometry.getFieldThird().getReefFrontAprilTagID(), ReefLevel.L4, ReefAlignment.LEFT))
 	),
