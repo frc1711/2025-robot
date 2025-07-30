@@ -132,22 +132,22 @@ public class InputSchemeBuilder {
 	
 	public InputSchemeBuilder useABXYToScoreCoral(CommandXboxController controller) {
 		
-		controller.b().whileTrue(ReefLevel.L1_TROUGH.score(this.robot));
+		controller.b().whileTrue(this.robot.complexCommands.unloadMailbox());
 		
 		controller.a().whileTrue(new SelectCommand<>(Map.ofEntries(
-			Map.entry(ReefAlignmentMode.MANUAL, ReefLevel.L2.score(this.robot)),
+			Map.entry(ReefAlignmentMode.MANUAL, this.robot.complexCommands.raiseAndShoot(ReefLevel.L2)),
 			Map.entry(ReefAlignmentMode.LEFT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L2, ReefAlignment.LEFT)),
 			Map.entry(ReefAlignmentMode.RIGHT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L2, ReefAlignment.RIGHT))
 		), () -> ReefAlignmentMode.ACTIVE));
 		
 		controller.x().whileTrue(new SelectCommand<>(Map.ofEntries(
-			Map.entry(ReefAlignmentMode.MANUAL, ReefLevel.L3.score(this.robot)),
+			Map.entry(ReefAlignmentMode.MANUAL, this.robot.complexCommands.raiseAndShoot(ReefLevel.L3)),
 			Map.entry(ReefAlignmentMode.LEFT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L3, ReefAlignment.LEFT)),
 			Map.entry(ReefAlignmentMode.RIGHT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L3, ReefAlignment.RIGHT))
 		), () -> ReefAlignmentMode.ACTIVE));
 		
 		controller.y().whileTrue(new SelectCommand<>(Map.ofEntries(
-			Map.entry(ReefAlignmentMode.MANUAL, ReefLevel.L4.score(this.robot)),
+			Map.entry(ReefAlignmentMode.MANUAL, this.robot.complexCommands.raiseAndShoot(ReefLevel.L4)),
 			Map.entry(ReefAlignmentMode.LEFT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L4, ReefAlignment.LEFT)),
 			Map.entry(ReefAlignmentMode.RIGHT, this.robot.complexCommands.autoScoreOnReef(ReefLevel.L4, ReefAlignment.RIGHT))
 		), () -> ReefAlignmentMode.ACTIVE));
