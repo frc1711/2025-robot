@@ -546,15 +546,6 @@ public class Swerve extends SubsystemBase {
 					
 					double inchesRemaining = this.getRemainingLinearDistance()
 						.in(Inches);
-					double degreesRemaining = currentPose.getRotation()
-						.minus(desiredPose.getRotation())
-						.getDegrees();
-					
-					System.out.printf(
-						"goToPosition remaining travel: [%.2f inches, %.2f degrees]\n",
-						inchesRemaining,
-						degreesRemaining
-					);
 					
 					double thetaFeed = thetaController.calculate(currentPose.getRotation().getDegrees());
 					Translation2d point = new Translation2d(
