@@ -82,6 +82,18 @@ public class ComplexCommands {
 
 	}
 	
+	public Command waitUntilCoralIsLoaded() {
+		
+		return robot.complexCommands.autoAcceptMail()
+			.alongWith(robot.complexCommands.autofeedMailbox())
+			.withDeadline(
+				robot.intake.commands.waitUntilCoralIsInUpperIntake()
+					.andThen(robot.intake.commands.waitUntilCoralIsInLowerIntake())
+					.andThen(robot.intake.commands.waitUntilCoralIsNotInLowerIntake())
+			);
+		
+	}
+	
 	protected Command simpleScore(ElevatorPosition position, double speed, double shootTime) {
 
 		Command drive = this.drive();
