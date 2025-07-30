@@ -212,14 +212,4 @@ public class InputSchemeBuilder {
 		
 	}
 	
-	public InputSchemeBuilder usePovUpToDistanceL4Score(CommandXboxController controller) {
-		
-		controller.povUp().whileTrue(
-			this.robot.complexCommands.scoreOnL4Distant()
-		);
-		
-		return this;
-		
-	}
-	
 }
