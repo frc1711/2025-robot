@@ -186,56 +186,6 @@ public class ComplexCommands {
 		
 	}
 	
-	public Command scoreOnL1() {
-		
-		Command waitUntilAtUnloadingHeight =
-			this.robot.elevator.commands.waitUntilAtPosition(ElevatorPosition.RESTING, Inches.of(0.125));
-		
-		Command loadLowerMailbox = this.robot.elevator.commands.goTo(ElevatorPosition.L1_LOADING)
-			.alongWith(
-				this.robot.elevator.commands.waitUntilAtPosition(ElevatorPosition.L1_LOADING, Inches.of(0.125))
-					.andThen(this.loadMailbox().until(this.robot.intake.triggers.isCoralInLowerIntake().negate()))
-				
-			);
-		
-		return waitUntilAtUnloadingHeight
-			.andThen(this.unloadMailbox().until(this.robot.intake.triggers.isCoralInLowerIntake()))
-			.andThen(this.unloadMailbox().until(this.robot.intake.triggers.isCoralInLowerIntake().negate()))
-			.andThen(this.loadMailbox(0.2).until(this.robot.intake.triggers.isCoralInLowerIntake()))
-			.andThen(loadLowerMailbox.until(this.robot.intake.triggers.isCoralInLowerIntake().negate()))
-			.andThen(this.simpleScore(ElevatorPosition.L1_SCORING, 1, 1));
-		
-	}
-	
-	public Command scoreOnL2() {
-		
-		return this.simpleScore(ElevatorPosition.L2_SCORING, 0.75, 0.5);
-		
-	}
-	
-	public Command scoreOnL3() {
-		
-		return this.simpleScore(ElevatorPosition.L3_SCORING, 1, 0.5);
-		
-	}
-	
-	public Command scoreOnL4() {
-		
-		return this.simpleScore(ElevatorPosition.L4_SCORING, 0.5, 0.5)
-			.andThen(
-				this.robot.elevator.commands.goTo(ElevatorPosition.L4_TIP)
-					.alongWith(this.robot.mailbox.commands.feed())
-					.until(this.robot.elevator.triggers.isAtPosition(ElevatorPosition.L4_TIP))
-			);
-		
-	}
-	
-	public Command scoreOnL4Distant() {
-		
-		return this.simpleScore(ElevatorPosition.L4_DISTANT_SCORING, 0.25, 1);
-		
-	}
-	
 	public Command removeAlgaeAtLevel(ElevatorPosition position) {
 		
 		return this.robot.elevator.commands.goTo(position)
