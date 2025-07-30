@@ -76,7 +76,7 @@ public enum Auton {
 		new SequentialCommandGroup(
 			robot.swerve.commands.drive(ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(15)).withFieldRelative(robot.swerve)).withTimeout(Seconds.of(6)),
 			robot.swerve.commands.drive(ChassisSpeedsSupplierBuilder.forwards(InchesPerSecond.of(10)).withFieldRelative(robot.swerve)).withTimeout(Seconds.of(0.25)),
-			robot.complexCommands.scoreOnL4()
+			ReefLevel.L4.score(robot)
 		)
 	),
 	
