@@ -456,17 +456,6 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 		return this.withRobotRelativeHeading(new Rotation2d(heading));
 		
 	}
-
-	/**
-	 * Returns the current pose represented by this RobotPoseBuilder.
-	 *
-	 * @return The current Pose2d represented by this RobotPoseBuilder.
-	 */
-	public Pose2d toPose() {
-		
-		return this.pose;
-		
-	}
 	
 	@Override
 	public Pose2d get() {
