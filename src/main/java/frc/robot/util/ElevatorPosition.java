@@ -43,18 +43,15 @@ public class ElevatorPosition {
 	public static final ElevatorPosition L2_SCORING = RESTING;
 	
 	public static final ElevatorPosition L3_SCORING =
-//		ElevatorPosition.fromUpperMailboxHeight(Inches.of(50));
 		ElevatorPosition.fromUpperMailboxHeight(Inches.of(49));
 	
 	public static final ElevatorPosition L4_SCORING =
-//		ElevatorPosition.fromUpperMailboxHeight(Inches.of(75));
 		ElevatorPosition.fromUpperMailboxHeight(Inches.of(74));
 	
 	public static final ElevatorPosition L4_DISTANT_SCORING =
 		ElevatorPosition.fromUpperMailboxHeight(Inches.of(80));
 	
 	public static final ElevatorPosition L4_TIP =
-//		ElevatorPosition.fromUpperMailboxHeight(Inches.of(83));
 		ElevatorPosition.fromUpperMailboxHeight(Inches.of(82));
 	
 	protected final Distance stage1Offset;
