@@ -2,14 +2,13 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.ReefLevel;
 import frc.robot.configuration.StatusLightsPattern;
-import frc.robot.subsystems.Swerve;
 import frc.robot.util.*;
 
 import java.util.function.IntSupplier;
@@ -35,23 +34,14 @@ public class ComplexCommands {
 
 	public Command drive(CommandXboxController controller) {
 
-		double joystickDeadband = 0.1;
-		double linearInputPowerSmoothing = 3;
-		Swerve swerve = this.robot.swerve;
-
-		return swerve.commands.driveFromController(
-			PointSupplierBuilder.fromLeftJoystick(controller)
-				.normalizeXboxJoystickToNWU()
-				.withClamp(-1, 1)
-				.withScaledDeadband(joystickDeadband)
-				.withExponentialCurve(linearInputPowerSmoothing),
-			DoubleSupplierBuilder.fromRightX(controller)
-				.withScaling(-1)
-				.withClamp(-1, 1)
-				.withScaledDeadband(joystickDeadband)
-				.withExponentialCurve(linearInputPowerSmoothing),
-			Swerve.DriveMode.FIELD_RELATIVE
-		).finallyDo(swerve::stop);
+		return this.robot.swerve.commands.drive(
+			ChassisSpeedsSupplierBuilder.fromControllerJoysticks(controller)
+				.withFieldRelative(this.robot.swerve)
+				.withAdditional(ChassisSpeedsSupplierBuilder.fromControllerDPad(controller))
+				.withSlowModeCheck(this.robot.swerve)
+				.withMaxVelocityCheck()
+				.withMaxAccelerationCheck()
+		).finallyDo(this.robot.swerve::stop);
 
 	}
 	
@@ -138,43 +128,27 @@ public class ComplexCommands {
 			case L3 -> ElevatorPosition.L3_SCORING;
 			case L4 -> ElevatorPosition.L4_SCORING;
 		};
+		Distance extra = level.equals(ReefLevel.L4)
+				? Inches.of(-2)
+				: Inches.of(0);
 		Command startLog = new LogCommand(
 			"Attempting to auto-score on reef. [April tag ID: " +
 			reefTagID.getAsInt() + ", level: " + level + ", branch: " + branch +
 			"]"
 		);
-		Command goToCalibrationPosition = this.robot.swerve.commands.goToPosition(
-			() -> RobotPoseBuilder.getReefCalibrationPose(reefTagID.getAsInt()).toPose(),
-			InchesPerSecond.of(80),
-			Inches.of(2),
-			Degrees.of(5),
-			new int[] { reefTagID.getAsInt() }
-		);
-//		Command goToCalibrationPosition = this.robot.swerve.commands.goToPosition2(
-//			RobotPoseBuilder.getReefCalibrationPose(reefTagID.getAsInt()).toPose()
-//		);
-//		Command goToScoringPosition = this.robot.swerve.commands
-//			.goToReefPosition(reefTagID, branch, level);
-		Supplier<Pose2d> scoringPoseSupplier = () ->
+		Supplier<Pose2d> poseSupplier = () ->
 			RobotPoseBuilder.getReefScoringPose(reefTagID.getAsInt(), branch)
-				.withRobotRelativeTranslation(new Translation2d(
-//					Inches.of(level == ReefLevel.L4 ? -1.75 : 0),
-					Inches.of(0),
-					Inches.of(0)
-				))
-				.toPose();
+				.withRobotRelativeTranslation(new Translation2d(extra, Inches.of(0)))
+				.get();
 		Command goToScoringPosition = this.robot.swerve.commands.goToPosition(
-			scoringPoseSupplier,
+			poseSupplier,
 			InchesPerSecond.of(40),
 			Inches.of(0.25),
 			Degrees.of(1),
-			new int[] { reefTagID.getAsInt() }
+			() -> new int[] { reefTagID.getAsInt() }
 		);
-//		Command waitUntilPositionedToScore = this.robot.swerve.commands
-//			.waitUntilAtReefPosition(reefTagID, branch, level)
-//			.alongWith(Commands.waitUntil(this.robot.elevator.triggers.isAtPosition(elevatorPosition)));
 		Command waitUntilPositionedToScore = this.robot.swerve.commands
-			.waitUntilAtPosition(scoringPoseSupplier, Inches.of(0.375), Degrees.of(1))
+			.waitUntilAtPosition(poseSupplier, Inches.of(0.375), Degrees.of(1))
 			.alongWith(Commands.waitUntil(this.robot.elevator.triggers.isAtPosition(elevatorPosition)));
 		Command raiseElevator = new InstantCommand(() -> this.robot.elevator.goToPosition(elevatorPosition));
 		Command scoreCoral = this.robot.mailbox.commands.feed(level).withTimeout(0.6);
@@ -183,15 +157,6 @@ public class ComplexCommands {
 			.until(robot.intake.triggers.isCoralInUpperIntake().negate().and(robot.intake.triggers.isCoralInLowerIntake().negate()));
 
 		if (level == ReefLevel.L4) {
-
-			scoreCoral = this.robot.swerve.commands.drive(new ChassisSpeeds(
-				InchesPerSecond.of(-15),
-				InchesPerSecond.of(0),
-				DegreesPerSecond.of(0)
-			), Swerve.DriveMode.ROBOT_RELATIVE, true)
-				.withTimeout(0.25)
-				.finallyDo(this.robot.swerve::stop)
-				.andThen(scoreCoral);
 			
 			scoreCoral = scoreCoral.andThen(
 				this.robot.elevator.commands.goTo(ElevatorPosition.L4_TIP)
@@ -202,14 +167,14 @@ public class ComplexCommands {
 		}
 		
 		return startLog.andThen(
-			positionCoral.withDeadline(goToCalibrationPosition)
+			positionCoral
 		.andThen(new WaitCommand(0.25))
-		.andThen(
-			goToScoringPosition
-				.alongWith(raiseElevator)
-				.alongWith(autoAcceptMail())
-				.withDeadline(waitUntilPositionedToScore)
-				.andThen(scoreCoral)
+//		.andThen(goToCalibrationPosition)
+		.andThen(goToScoringPosition
+			.alongWith(raiseElevator)
+			.alongWith(autoAcceptMail())
+			.withDeadline(waitUntilPositionedToScore)
+			.andThen(scoreCoral)
 		)).finallyDo(() -> this.robot.elevator.goToPosition(ElevatorPosition.RESTING));
 		
 	}
@@ -227,11 +192,11 @@ public class ComplexCommands {
 	public Command scoreOnL1() {
 		
 		Command waitUntilAtUnloadingHeight =
-			this.robot.elevator.commands.waitToReachHeight(ElevatorPosition.RESTING);
+			this.robot.elevator.commands.waitUntilAtPosition(ElevatorPosition.RESTING, Inches.of(0.125));
 		
 		Command loadLowerMailbox = this.robot.elevator.commands.goTo(ElevatorPosition.L1_LOADING)
 			.alongWith(
-				this.robot.elevator.commands.waitToReachHeight(ElevatorPosition.L1_LOADING)
+				this.robot.elevator.commands.waitUntilAtPosition(ElevatorPosition.L1_LOADING, Inches.of(0.125))
 					.andThen(this.loadMailbox().until(this.robot.intake.triggers.isCoralInLowerIntake().negate()))
 				
 			);
@@ -259,11 +224,12 @@ public class ComplexCommands {
 	
 	public Command scoreOnL4() {
 		
-		return this.simpleScore(ElevatorPosition.L4_SCORING, 0.5, 0.5).andThen(
-			this.robot.elevator.commands.goTo(ElevatorPosition.L4_TIP)
-				.alongWith(this.robot.mailbox.commands.feed())
-				.until(this.robot.elevator.triggers.isAtPosition(ElevatorPosition.L4_TIP))
-		);
+		return this.simpleScore(ElevatorPosition.L4_SCORING, 0.5, 0.5)
+			.andThen(
+				this.robot.elevator.commands.goTo(ElevatorPosition.L4_TIP)
+					.alongWith(this.robot.mailbox.commands.feed())
+					.until(this.robot.elevator.triggers.isAtPosition(ElevatorPosition.L4_TIP))
+			);
 		
 	}
 	
