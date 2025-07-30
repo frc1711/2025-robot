@@ -81,19 +81,28 @@ public class ComplexCommands {
 		
 	}
 	
-	protected Command simpleScore(ElevatorPosition position, double speed, double shootTime) {
+	public Command raiseAndShoot(ReefLevel level) {
 
-		Command drive = this.drive();
-		Command moveElevatorToPosition =
-			this.robot.elevator.commands.goTo(position);
-		Command waitForElevatorToMoveToPosition =
-			Commands.waitUntil(this.robot.elevator.triggers.isAtPosition(position));
-		Command shoot = this.robot.mailbox.commands.feed(speed).withTimeout(shootTime);
-
-		return drive
-			.alongWith(moveElevatorToPosition.withDeadline(waitForElevatorToMoveToPosition.andThen(shoot)))
-			.finallyDo(() -> this.robot.lights.set(StatusLightsPattern.SOLID_COLORS_WHITE));
-
+		Command moveElevatorToPosition = this.robot.elevator.commands.goTo(level.elevatorScoringPosition);
+		Command waitForElevatorToMoveToPosition = this.robot.elevator.commands.waitUntilAtPosition(level.elevatorScoringPosition);
+		Command shoot = this.robot.mailbox.commands.feed().withTimeout(Seconds.of(0.5));
+		Command raiseAndShoot = this.drive().alongWith(
+			moveElevatorToPosition.withDeadline(waitForElevatorToMoveToPosition.andThen(shoot))
+		);
+		Runnable resetLights = () -> this.robot.lights.set(StatusLightsPattern.SOLID_COLORS_WHITE);
+		
+		if (level.equals(ReefLevel.L4)) {
+			
+			raiseAndShoot = raiseAndShoot.andThen(
+				this.robot.elevator.commands.goTo(ElevatorPosition.L4_TIP)
+					.alongWith(this.robot.mailbox.commands.feed())
+					.until(this.robot.elevator.triggers.isAtPosition(ElevatorPosition.L4_TIP))
+			);
+			
+		}
+		
+		return raiseAndShoot.finallyDo(resetLights);
+		
 	}
 	
 	public Command unloadMailbox() {
