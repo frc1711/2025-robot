@@ -74,6 +74,7 @@ public enum Auton {
 		Command attemptToScoreSecondCoral = goToCoralStation.withTimeout(Seconds.of(3))
 			.andThen(driveAgainstCoralStation.withDeadline(coralLoadingDeadline))
 			.andThen(robot.complexCommands.autoScoreOnReef(ReefLevel.L4, ReefAlignment.RIGHT))
+			.andThen(goBackToCoralStation.withTimeout(4))
 			.onlyIf(() -> robot.odometry.getFieldThird() != FieldThird.CENTER);
 		
 		return scoreFirstCoral
