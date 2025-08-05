@@ -163,10 +163,8 @@ public class Elevator extends SubsystemBase {
 		
 		public Command goTo(ElevatorPosition position) {
 			
-			return Elevator.this.startEnd(
-				() -> Elevator.this.goToPosition(position),
-				() -> Elevator.this.goToPosition(ElevatorPosition.RESTING)
-			);
+			return Elevator.this.runOnce(() -> Elevator.this.goToPosition(position))
+				.andThen(this.waitUntilAtPosition(position));
 			
 		}
 		
