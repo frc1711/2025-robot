@@ -638,42 +638,6 @@ public class Swerve extends SubsystemBase {
 			});
 			
 		}
-		
-		public Command goToPosition2(Pose2d pose) {
-			
-			double linearKp = 0.000000002;
-			LinearVelocity maxVelocity = InchesPerSecond.of(80);
-			LinearAcceleration maxAcceleration = InchesPerSecond.per(Second).of(160);
-			
-			TrajectoryConfig config = new TrajectoryConfig(
-				maxVelocity.in(MetersPerSecond),
-				maxAcceleration.in(MetersPerSecondPerSecond)
-			);
-
-			return new DeferredCommand(() -> {
-				
-				Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
-					List.of(Swerve.this.odometry.getPose(), pose),
-					config
-				);
-				
-				return new SwerveControllerCommand(
-					trajectory,
-					Swerve.this.odometry::getPose,
-					Swerve.this.kinematics,
-					new PIDController(linearKp, 0, 0),
-					new PIDController(linearKp, 0, 0),
-					new ProfiledPIDController(5, 0, 0, new TrapezoidProfile.Constraints(
-							180,
-							90
-					)),
-					Swerve.this::applyModuleStates,
-					Swerve.this
-				).andThen(this.stop());
-				
-			}, Set.of(Swerve.this));
-			
-		}
 	
 	}
 	
