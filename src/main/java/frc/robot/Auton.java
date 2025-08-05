@@ -37,13 +37,8 @@ public enum Auton {
 			FieldThird.RIGHT, robot.complexCommands.autoScoreOnReef(() -> robot.odometry.getFieldThird().getReefFrontAprilTagID(), ReefLevel.L4, ReefAlignment.RIGHT)
 		), robot.odometry::getFieldThird);
 
-		Command backUpFromReef = robot.swerve.commands.drive(
-			ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(20))
-		).withTimeout(1);
-
 		Command goToCoralStation = robot.swerve.commands.goToPosition(
 			RobotPoseBuilder.getCoralStationLoadingPose(robot),
-			InchesPerSecond.of(80),
 			Inches.of(0.25),
 			Degrees.of(1),
 			null
