@@ -52,10 +52,27 @@ public enum Auton {
 		Command driveAgainstCoralStation = robot.swerve.commands.drive(
 			ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(10))
 		);
+
+		Command coralLoadingDeadline = robot.intake.commands.waitUntilCoralIsInUpperIntake()
+			.andThen(
+				robot.intake.commands.feed()
+						.alongWith(robot.mailbox.commands.feed(0.25))
+						.until(robot.intake.triggers.isCoralInLowerIntake())
+			).andThen(
+				robot.intake.commands.feed()
+						.alongWith(robot.mailbox.commands.feed(0.25))
+					.until(robot.intake.triggers.isCoralInLowerIntake().negate())
+			);
+
+		Command goBackToCoralStation = robot.swerve.commands.goToPosition(
+			RobotPoseBuilder.getCoralStationLoadingPose(robot),
+			Inches.of(0.25),
+			Degrees.of(1),
+			null
+		);
 		
-		Command attemptToScoreSecondCoral = backUpFromReef
-			.andThen(goToCoralStation.withTimeout(Seconds.of(3)))
-			.andThen(driveAgainstCoralStation.withDeadline(robot.complexCommands.waitUntilCoralIsLoaded()))
+		Command attemptToScoreSecondCoral = goToCoralStation.withTimeout(Seconds.of(3))
+			.andThen(driveAgainstCoralStation.withDeadline(coralLoadingDeadline))
 			.andThen(robot.complexCommands.autoScoreOnReef(ReefLevel.L4, ReefAlignment.RIGHT))
 			.onlyIf(() -> robot.odometry.getFieldThird() != FieldThird.CENTER);
 		
