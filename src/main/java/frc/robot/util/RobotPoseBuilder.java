@@ -203,7 +203,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	) {
 		
 		return RobotPoseBuilder.getCoralStationLoadingPose(
-			robot.odometry.getFieldThird()::getCoralStationAprilTagID
+			() -> robot.odometry.getFieldThird().getCoralStationAprilTagID()
 		);
 
 	}
