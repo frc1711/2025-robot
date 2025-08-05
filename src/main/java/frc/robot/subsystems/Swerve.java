@@ -478,7 +478,6 @@ public class Swerve extends SubsystemBase {
 		
 		public Command goToPosition(
 			Supplier<Pose2d> poseSupplier,
-			LinearVelocity maxLinearVelocity,
 			Distance distanceTolerance,
 			Angle angularTolerance,
 			Supplier<int[]> aprilTagFilter
@@ -486,7 +485,6 @@ public class Swerve extends SubsystemBase {
 			
 			Command command = new Command() {
 				
-//				final double LINEAR_KP = 0.000000005;
 				final double LINEAR_KP = 0.000000001;
 				
 				final double ANGULAR_KP = 8;
