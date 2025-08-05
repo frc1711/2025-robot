@@ -246,7 +246,7 @@ public class Elevator extends SubsystemBase {
 		
 		public Trigger isAtPosition(ElevatorPosition position) {
 			
-			return this.isAtPosition(position, Inches.of(0.125));
+			return this.isAtPosition(position, Inches.of(0.25));
 			
 		}
 		
