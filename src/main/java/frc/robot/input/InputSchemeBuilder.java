@@ -1,7 +1,7 @@
 package frc.robot.input;
 
 import com.revrobotics.spark.config.SparkBaseConfig;
-import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -9,6 +9,7 @@ import frc.robot.RobotContainer;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.ReefLevel;
 import frc.robot.configuration.ReefAlignmentMode;
+import frc.robot.configuration.RobotDimensions;
 import frc.robot.util.*;
 
 import java.util.Map;
@@ -106,17 +107,35 @@ public class InputSchemeBuilder {
 	
 	public InputSchemeBuilder useTriggersToLoad(CommandXboxController controller) {
 		
-		controller.leftTrigger(TRIGGER_THRESHOLD)
-			.and(controller.rightTrigger(TRIGGER_THRESHOLD))
-			.whileTrue(
-				this.robot.swerve.commands.goToPosition(
-					RobotPoseBuilder.getCoralStationLoadingPose(robot),
-					InchesPerSecond.of(80),
-					Inches.of(0.5),
-					Degrees.of(2),
-					null
-				)
-			);
+		controller.leftTrigger().whileTrue(
+			this.robot.swerve.commands.goToPosition(
+				RobotPoseBuilder.getCoralStationLoadingPose(robot)
+					.withRobotRelativeTranslation(new Translation2d(
+						Inches.of(0),
+						RobotDimensions.ROBOT_WIDTH.div(2)
+					)),
+				Inches.of(0.5),
+				Degrees.of(2),
+				null
+			).andThen(this.robot.swerve.commands.drive(
+				ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(15))
+			))
+		);
+		
+		controller.rightTrigger().whileTrue(
+			this.robot.swerve.commands.goToPosition(
+				RobotPoseBuilder.getCoralStationLoadingPose(robot)
+					.withRobotRelativeTranslation(new Translation2d(
+						Inches.of(0),
+						RobotDimensions.ROBOT_WIDTH.div(-2)
+					)),
+				Inches.of(0.5),
+				Degrees.of(2),
+				null
+			).andThen(this.robot.swerve.commands.drive(
+				ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(15))
+			))
+		);
 		
 		return this;
 		
