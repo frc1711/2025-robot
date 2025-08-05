@@ -97,7 +97,12 @@ public class VirtualField {
 		
 		Translation2d reefCenterPoint = VirtualField.getReefCenterPoint(alliance);
 		Translation2d positionRelativeToReef = position.minus(reefCenterPoint);
-		Rotation2d rotationAroundReef = new Rotation2d(positionRelativeToReef.getX(), positionRelativeToReef.getY());
+		double positionRelativeToReefX = positionRelativeToReef.getX();
+		double positionRelativeToReefY = positionRelativeToReef.getY();
+		Rotation2d rotationAroundReef =
+			positionRelativeToReefX == 0 && positionRelativeToReefY == 0
+				? Rotation2d.kZero
+				: new Rotation2d(positionRelativeToReefX, positionRelativeToReefY);
 		List<AprilTag> reefAprilTags = VirtualField.getReefAprilTags(alliance).toList();
 		
 		AprilTag nearestTag = reefAprilTags.get(0);
