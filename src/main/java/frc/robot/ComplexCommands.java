@@ -69,18 +69,6 @@ public class ComplexCommands {
 
 	}
 	
-	public Command waitUntilCoralIsLoaded() {
-		
-		return robot.complexCommands.autoAcceptMail()
-			.alongWith(robot.complexCommands.autofeedMailbox())
-			.withDeadline(
-				robot.intake.commands.waitUntilCoralIsInUpperIntake()
-					.andThen(robot.intake.commands.waitUntilCoralIsInLowerIntake())
-					.andThen(robot.intake.commands.waitUntilCoralIsNotInLowerIntake())
-			);
-		
-	}
-	
 	public Command raiseAndShoot(ReefLevel level) {
 
 		Command moveElevatorToPosition = this.robot.elevator.commands.goTo(level.elevatorScoringPosition);
