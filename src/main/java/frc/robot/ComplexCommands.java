@@ -198,7 +198,8 @@ public class ComplexCommands {
 	public Command removeAlgaeAtLevel(ElevatorPosition position) {
 		
 		return this.robot.elevator.commands.goTo(position)
-			.alongWith(this.robot.mailbox.commands.feed(0.25).withTimeout(0.25));
+			.alongWith(this.robot.mailbox.commands.feed(0.25).withTimeout(0.25))
+			.finallyDo(() -> this.robot.elevator.goToPosition(ElevatorPosition.RESTING));
 		
 	}
 	
