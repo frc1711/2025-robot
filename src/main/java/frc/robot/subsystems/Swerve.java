@@ -194,10 +194,13 @@ public class Swerve extends SubsystemBase {
 	
 	public LinearVelocity getLinearVelocity() {
 		
-		return MetersPerSecond.of(new Translation2d(
-			this.chassisSpeeds.vxMetersPerSecond,
-			this.chassisSpeeds.vyMetersPerSecond
-		).getNorm());
+		ChassisSpeeds actualChassisSpeeds = this.getActualChassisSpeeds();
+		Translation2d speedsTranslation = new Translation2d(
+			actualChassisSpeeds.vxMetersPerSecond,
+			actualChassisSpeeds.vyMetersPerSecond
+		);
+		
+		return MetersPerSecond.of(speedsTranslation.getNorm());
 		
 	}
 	
