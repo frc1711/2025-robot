@@ -349,13 +349,13 @@ public class Swerve extends SubsystemBase {
 			
 			builder.addDoubleProperty(
 				"Chassis Speeds (vX in inches per second)",
-				() -> MetersPerSecond.of(this.chassisSpeeds.vxMetersPerSecond).in(InchesPerSecond),
+				() -> MetersPerSecond.of(this.getActualChassisSpeeds().vxMetersPerSecond).in(InchesPerSecond),
 				null
 			);
 			
 			builder.addDoubleProperty(
 				"Chassis Speeds (vY in inches per second)",
-				() -> MetersPerSecond.of(this.chassisSpeeds.vyMetersPerSecond).in(InchesPerSecond),
+				() -> MetersPerSecond.of(this.getActualChassisSpeeds().vyMetersPerSecond).in(InchesPerSecond),
 				null
 			);
 			
@@ -367,7 +367,7 @@ public class Swerve extends SubsystemBase {
 			
 			builder.addDoubleProperty(
 				"Chassis Speeds (Rotation in degrees per second)",
-				() -> RadiansPerSecond.of(this.chassisSpeeds.omegaRadiansPerSecond).in(DegreesPerSecond),
+				() -> RadiansPerSecond.of(this.getActualChassisSpeeds().omegaRadiansPerSecond).in(DegreesPerSecond),
 				null
 			);
 			
