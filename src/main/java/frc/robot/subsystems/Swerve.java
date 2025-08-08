@@ -182,6 +182,16 @@ public class Swerve extends SubsystemBase {
 		
 	}
 	
+	public ChassisSpeeds getActualChassisSpeeds() {
+
+		return this.kinematics.toChassisSpeeds(
+			this.getModuleStream()
+				.map(SwerveModule::getActualState)
+				.toArray(SwerveModuleState[]::new)
+		);
+		
+	}
+	
 	public LinearVelocity getLinearVelocity() {
 		
 		return MetersPerSecond.of(new Translation2d(
