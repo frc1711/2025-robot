@@ -407,11 +407,6 @@ public class Swerve extends SubsystemBase {
 		};
 		
 	}
-
-	public enum DriveMode {
-		ROBOT_RELATIVE,
-		FIELD_RELATIVE,
-	}
 	
 	public class Commands {
 		
