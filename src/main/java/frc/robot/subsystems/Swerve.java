@@ -166,14 +166,14 @@ public class Swerve extends SubsystemBase {
 	
 	public void calibrateFieldRelativeHeading(Angle currentHeading) {
 		
-		this.gyro.calibrate(currentHeading);
+		this.gyro.yaw.calibrate(currentHeading);
 		this.setFieldRelativeHeadingSetpoint(currentHeading.times(-1));
 		
 	}
 	
 	public Angle getFieldRelativeHeading() {
 		
-		return this.gyro.getRotation();
+		return this.gyro.yaw.getAngle();
 		
 	}
 	
@@ -201,7 +201,7 @@ public class Swerve extends SubsystemBase {
 	
 	public AngularVelocity getAngularVelocity() {
 		
-		return this.gyro.getAngularVelocity();
+		return this.gyro.getYawAngularVelocity();
 		
 	}
 	
@@ -567,7 +567,7 @@ public class Swerve extends SubsystemBase {
 							thetaController.calculate(currentPose.getRotation().getDegrees()),
 							MAX_ANGULAR_VELOCITY.in(DegreesPerSecond)
 						))
-					), Rotation2d.fromDegrees(Swerve.this.gyro.getRotation().in(Degrees))));
+					), Swerve.this.gyro.yaw.getRotation()));
 
 				}
 
