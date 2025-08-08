@@ -8,13 +8,8 @@ import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.*;
-import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.measure.*;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -25,9 +20,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.configuration.*;
 import frc.robot.devicewrappers.RaptorsNavX;
+import frc.robot.math.LinearMotionProfiler;
 import frc.robot.util.*;
 
-import java.util.*;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -502,22 +497,17 @@ public class Swerve extends SubsystemBase {
 			Supplier<int[]> aprilTagFilter
 		) {
 			
+			AngularVelocity MAX_ANGULAR_VELOCITY = DegreesPerSecond.of(90);
+			
+			LinearMotionProfiler trajectory = new LinearMotionProfiler(
+				/* Max Linear Velocity: */ InchesPerSecond.of(150),
+				/* Max Linear Acceleration: */ FeetPerSecondPerSecond.of(40), 
+				/* Max Linear Deceleration: */ FeetPerSecondPerSecond.of(8)
+			);
+			PIDController thetaController = new PIDController(8, 0, 0);
+			thetaController.enableContinuousInput(-180, 180);
+
 			Command command = new Command() {
-				
-				final double LINEAR_KP = 0.000000001;
-				
-				final double ANGULAR_KP = 8;
-				
-				final AngularVelocity MAX_ANGULAR_VELOCITY = DegreesPerSecond.of(90);
-				
-				final PIDController xController =
-					new PIDController(LINEAR_KP, 0, 0);
-				
-				final PIDController yController =
-					new PIDController(LINEAR_KP, 0, 0);
-				
-				final PIDController thetaController =
-					new PIDController(ANGULAR_KP, 0, 0);
 				
 				Pose2d desiredPose;
 				Pose2d currentPose;
@@ -525,114 +515,99 @@ public class Swerve extends SubsystemBase {
 				@Override
 				public void initialize() {
 					
-					this.thetaController.enableContinuousInput(-180, 180);
-					this.updateSetpoint();
 					if (aprilTagFilter != null) {
 						Swerve.this.odometry.vision.setAprilTagFilter(aprilTagFilter.get());
 					}
-					Swerve.this.odometry.setDisplaySetpoint(desiredPose);
-				
+
 				}
-				
-				void updateSetpoint() {
-					
-					desiredPose = poseSupplier.get();
-					
-					xController.setSetpoint(desiredPose.getMeasureX().in(Inches));
-					yController.setSetpoint(desiredPose.getMeasureY().in(Inches));
-					thetaController.setSetpoint(desiredPose.getRotation().getMeasure().in(Degrees));
-					
-				}
-				
+
 				Distance getRemainingLinearDistance() {
-					
+
 					return Meters.of(
 						currentPose.getTranslation()
 							.minus(desiredPose.getTranslation())
 							.getNorm()
 					);
-					
+
 				}
-				
+
 				@Override
 				public void execute() {
 					
 					Pose2d newCurrentPose = Swerve.this.odometry.getPose();
+					Pose2d newDesiredPose = poseSupplier.get();
 					
 					if (newCurrentPose != null) this.currentPose = newCurrentPose;
+					if (newDesiredPose != null) this.desiredPose = newDesiredPose;
 					
-					double inchesRemaining = this.getRemainingLinearDistance()
-						.in(Inches);
-					
-					double thetaFeed = thetaController.calculate(currentPose.getRotation().getDegrees());
-					Translation2d point = new Translation2d(
-						Inches.of(xController.calculate(currentPose.getMeasureX().in(Inches))),
-						Inches.of(yController.calculate(currentPose.getMeasureY().in(Inches)))
+					Swerve.this.odometry.setDisplaySetpoint(this.desiredPose);
+					thetaController.setSetpoint(
+						this.desiredPose.getRotation().getMeasure().in(Degrees)
+					);
+
+					LinearVelocity velocity = trajectory.calculate(
+						this.getRemainingLinearDistance(),
+						Swerve.this.getLinearVelocity()
 					);
 					
-					double maxAcceleration = 96;
-					double maxDeceleration = 40;
-					double maxVelocityToStop = Math.sqrt(2 * maxDeceleration * inchesRemaining);
-					double currentVelocity = Swerve.this.getLinearVelocity().in(InchesPerSecond);
-					double desiredVelocity = currentVelocity < maxVelocityToStop
-						? Math.min(currentVelocity + maxAcceleration * 0.02, maxVelocityToStop)
-						: Math.max(currentVelocity - maxDeceleration * 0.02, maxVelocityToStop);
-					
-					point = point.div(
-						point.getNorm() /
-						InchesPerSecond.of(desiredVelocity).in(MetersPerSecond)
-					);
-					
-					point = new Translation2d(
-						InchesPerSecond.of(desiredVelocity).in(MetersPerSecond),
-						point.getAngle()
-					);
-					
-					System.out.printf("linear velocity: %.2f\n", MetersPerSecond.of(point.getNorm()).in(InchesPerSecond));
+					Translation2d deltaTranslation = this.desiredPose.getTranslation()
+						.minus(this.currentPose.getTranslation());
 					
 					boolean needsInverting = DriverStation.Alliance.Red ==
-						DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
-					
-					if (needsInverting) point = point.times(-1);
+							DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
+					Translation2d chassisSpeedTranslation = new Translation2d(
+						velocity.in(MetersPerSecond),
+						deltaTranslation.getAngle()
+					).times(needsInverting ? -1 : 1);
 					
 					Swerve.this.applyChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
-						MetersPerSecond.of(point.getX()),
-						MetersPerSecond.of(point.getY()),
-						DegreesPerSecond.of(Math.min(thetaFeed, this.MAX_ANGULAR_VELOCITY.in(DegreesPerSecond)))
+						MetersPerSecond.of(chassisSpeedTranslation.getX()),
+						MetersPerSecond.of(chassisSpeedTranslation.getY()),
+						DegreesPerSecond.of(Math.min(
+							thetaController.calculate(currentPose.getRotation().getDegrees()),
+							MAX_ANGULAR_VELOCITY.in(DegreesPerSecond)
+						))
 					), Rotation2d.fromDegrees(Swerve.this.gyro.getRotation().in(Degrees))));
-					
+
 				}
-				
+
 				@Override
 				public boolean isFinished() {
-					
+
 					Pose2d relativePose = currentPose.relativeTo(desiredPose);
 					Distance linearDistance = Meters.of(relativePose.getTranslation().getNorm());
-					
-					if (linearDistance.lt(Inches.of(0))) linearDistance = linearDistance.times(-1);
-					
+
+					if (linearDistance.lt(Inches.of(0))) {
+						
+						linearDistance = linearDistance.times(-1);
+						
+					}
+
 					return (
 						linearDistance.lte(distanceTolerance) &&
-						currentPose.getRotation().getMeasure().isNear(desiredPose.getRotation().getMeasure(), angularTolerance)
+						currentPose.getRotation().getMeasure().isNear(
+							desiredPose.getRotation().getMeasure(),
+							angularTolerance
+						)
 					);
-					
+
 				}
-				
+
 				@Override
 				public void end(boolean interrupted) {
-					
+
 					Swerve.this.odometry.removeDisplaySetpoint();
 					Swerve.this.odometry.vision.resetAprilTagFilter();
-					Swerve.this.applyChassisSpeeds(new ChassisSpeeds(0, 0, 0));
-					
+					Swerve.this.stop();
+
 				}
-				
+
 			};
-			
+
 			command.addRequirements(Swerve.this);
-			
+
 			return command;
-			
+
 		}
 		
 		public Command waitUntilAtPosition(
