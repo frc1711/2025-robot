@@ -254,6 +254,12 @@ public class Swerve extends SubsystemBase {
 		);
 		
 		builder.addDoubleProperty(
+			"Swerve Linear Velocity (in/sec)",
+				() -> this.getLinearVelocity().in(InchesPerSecond),
+				null
+		);
+		
+		builder.addDoubleProperty(
 			"Swerve Module Velocity kP",
 			this.modules[0].driveMotorController.configAccessor.closedLoop::getP,
 			(double kP) -> {
