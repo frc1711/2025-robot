@@ -348,7 +348,14 @@ public class SwerveModule extends SubsystemBase {
 			SparkBase.ControlType.kVelocity
 		);
 		
+	}
+	
+	public SwerveModuleState getActualState() {
 		
+		return new SwerveModuleState(
+			this.getVelocity(),
+			new Rotation2d(this.getSteeringHeading())
+		);
 		
 	}
 	
