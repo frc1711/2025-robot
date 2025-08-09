@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.configuration.FieldThird;
+import frc.robot.math.Point;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -21,6 +22,8 @@ public class VirtualField {
 	public static final Distance FIELD_LENGTH = Meters.of(17.5482504);
 	
 	public static final Distance FIELD_WIDTH = Meters.of(8.0519016);
+	
+	public static final Distance REEF_SECTION_WIDTH = Inches.of(37);
 	
 	public static final AprilTagFieldLayout APRIL_TAGS =
 		AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
@@ -152,8 +155,7 @@ public class VirtualField {
 		Translation2d position
 	) {
 		
-		Distance reefSectionWidth = Inches.of(37);
-		Distance leftSideCutoff = FIELD_WIDTH.minus(reefSectionWidth).div(2);
+		Distance leftSideCutoff = FIELD_WIDTH.minus(REEF_SECTION_WIDTH).div(2);
 		Distance rightSideCutoff = FIELD_WIDTH.minus(leftSideCutoff);
 		Distance robotYPosition = position.getMeasureY();
 		
