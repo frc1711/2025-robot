@@ -4,7 +4,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.configuration.ReefAlignment;
-import frc.robot.util.RobotPoseBuilder;
+import frc.robot.util.PoseBuilder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -65,9 +65,7 @@ public class Translation2dUtilitiesTest {
 		
 		System.out.println("Tag " + tagID + " Pose: (" + tagPose.getX() + ", " + tagPose.getY() + ")");
 		
-//		Pose2d robotPose = ControlsUtilities.getRobotPoseForReefAprilTagPose(tagPose);
-//		Pose2d robotPose = RobotPoseHelper.getCenteredRobotPoseForReefAprilTag(tagID, ReefLevel.L2);
-		Pose2d robotPose = RobotPoseBuilder.getReefScoringPose(tagID, ReefAlignment.CENTER).toPose();
+		Pose2d robotPose = PoseBuilder.getReefScoringPose(() -> tagID, ReefAlignment.CENTER).get();
 		
 		assertPoseEquals(robotPose, desiredPose);
 		
