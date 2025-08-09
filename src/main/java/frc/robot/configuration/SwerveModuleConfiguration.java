@@ -4,8 +4,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 
 import java.util.stream.Stream;
 
-import static edu.wpi.first.units.Units.Degrees;
-
 public enum SwerveModuleConfiguration {
 	
 	FRONT_LEFT(

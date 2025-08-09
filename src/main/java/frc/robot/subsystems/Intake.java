@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import au.grapplerobotics.LaserCan;
 import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -15,7 +14,6 @@ import frc.robot.configuration.CANDevice;
 import frc.robot.devicewrappers.RaptorsLaserCAN;
 
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Millimeters;
 
 public class Intake extends SubsystemBase {
 	

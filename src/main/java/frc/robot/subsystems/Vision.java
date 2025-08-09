@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.*;
-import static edu.wpi.first.units.Units.Meters;
 
 public class Vision {
 	
