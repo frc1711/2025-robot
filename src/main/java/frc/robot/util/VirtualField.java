@@ -25,7 +25,27 @@ public class VirtualField {
 	public static final AprilTagFieldLayout APRIL_TAGS =
 		AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 	
-//	protected static final
+	public static final DriverStation.Alliance DEFAULT_ALLIANCE =
+		DriverStation.Alliance.Red;
+	
+	public static DriverStation.Alliance getAlliance() {
+		
+		return DriverStation.getAlliance()
+			.orElse(VirtualField.DEFAULT_ALLIANCE);
+		
+	}
+
+	public static boolean isRedAlliance() {
+
+		return DriverStation.Alliance.Red.equals(VirtualField.getAlliance());
+
+	}
+
+	public static boolean isBlueAlliance() {
+
+		return DriverStation.Alliance.Blue.equals(VirtualField.getAlliance());
+
+	}
 	
 	public static AprilTag getAprilTagByID(int id) {
 		
