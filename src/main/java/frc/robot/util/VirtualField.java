@@ -83,18 +83,13 @@ public class VirtualField {
 		
 	}
 	
-	public static Translation2d getReefCenterPoint(DriverStation.Alliance alliance) {
+	public static Point getReefCenterPoint(DriverStation.Alliance alliance) {
 		
-		List<Translation2d> reefAprilTagPoints =
+		return Point.average(
 			VirtualField.getReefAprilTags(alliance)
 				.map(tag -> tag.pose.getTranslation().toTranslation2d())
-				.toList();
-		
-		return reefAprilTagPoints.stream()
-			.reduce((point, acc) -> new Translation2d(
-				point.getX() + acc.getX(),
-				point.getY() + acc.getY()
-			)).get().div(reefAprilTagPoints.size());
+				.toArray(Translation2d[]::new)
+		);
 		
 	}
 	
