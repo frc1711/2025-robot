@@ -119,7 +119,7 @@ public class ComplexCommands {
 	public Command autoScoreOnReef(IntSupplier reefTagID, ReefLevel level, ReefAlignment branch) {
 		
 		Distance extra = Inches.of(level.equals(ReefLevel.L4) ? -2 : 0);
-		Supplier<Pose2d> poseSupplier = RobotPoseBuilder.getReefScoringPose(reefTagID, branch)
+		Supplier<Pose2d> poseSupplier = PoseBuilder.getReefScoringPose(reefTagID, branch)
 			.withRobotRelativeTranslation(new Translation2d(extra, Inches.of(0)));
 		Command goToScoringPosition = this.robot.swerve.commands.goToPosition(
 			poseSupplier,

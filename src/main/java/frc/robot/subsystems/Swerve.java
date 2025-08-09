@@ -315,8 +315,8 @@ public class Swerve extends SubsystemBase {
 
 					Pose2d currentPose = this.odometry.getPose();
 					IntSupplier tagID = () -> this.odometry.getNearestReefAprilTag().ID;
-					Pose2d leftScoringPose = RobotPoseBuilder.getReefScoringPose(tagID, ReefAlignment.LEFT).get();
-					Pose2d rightScoringPose = RobotPoseBuilder.getReefScoringPose(tagID, ReefAlignment.RIGHT).get();
+					Pose2d leftScoringPose = PoseBuilder.getReefScoringPose(tagID, ReefAlignment.LEFT).get();
+					Pose2d rightScoringPose = PoseBuilder.getReefScoringPose(tagID, ReefAlignment.RIGHT).get();
 					double distanceToLeft = currentPose.minus(leftScoringPose).getTranslation().getNorm();
 					double distanceToRight = currentPose.minus(rightScoringPose).getTranslation().getNorm();
 

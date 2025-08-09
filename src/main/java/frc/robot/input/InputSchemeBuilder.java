@@ -109,7 +109,7 @@ public class InputSchemeBuilder {
 		
 		controller.leftTrigger().whileTrue(
 			this.robot.swerve.commands.goToPosition(
-				RobotPoseBuilder.getCoralStationLoadingPose(robot)
+				PoseBuilder.getCoralStationLoadingPose(robot)
 					.withRobotRelativeTranslation(new Translation2d(
 						Inches.of(0),
 						RobotDimensions.ROBOT_WIDTH.div(2)
@@ -124,7 +124,7 @@ public class InputSchemeBuilder {
 		
 		controller.rightTrigger().whileTrue(
 			this.robot.swerve.commands.goToPosition(
-				RobotPoseBuilder.getCoralStationLoadingPose(robot)
+				PoseBuilder.getCoralStationLoadingPose(robot)
 					.withRobotRelativeTranslation(new Translation2d(
 						Inches.of(0),
 						RobotDimensions.ROBOT_WIDTH.div(-2)

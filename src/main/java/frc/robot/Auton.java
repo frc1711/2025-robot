@@ -8,7 +8,7 @@ import frc.robot.configuration.FieldThird;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.ReefLevel;
 import frc.robot.util.ChassisSpeedsSupplierBuilder;
-import frc.robot.util.RobotPoseBuilder;
+import frc.robot.util.PoseBuilder;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -38,7 +38,7 @@ public enum Auton {
 		), robot.odometry::getFieldThird);
 
 		Command goToCoralStation = robot.swerve.commands.goToPosition(
-			RobotPoseBuilder.getCoralStationLoadingPose(robot),
+			PoseBuilder.getCoralStationLoadingPose(robot),
 			Inches.of(0.25),
 			Degrees.of(1),
 			null
@@ -60,7 +60,7 @@ public enum Auton {
 			);
 
 		Command goBackToCoralStation = robot.swerve.commands.goToPosition(
-			RobotPoseBuilder.getCoralStationLoadingPose(robot),
+			PoseBuilder.getCoralStationLoadingPose(robot),
 			Inches.of(0.25),
 			Degrees.of(1),
 			null

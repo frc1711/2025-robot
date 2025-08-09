@@ -19,7 +19,7 @@ import static edu.wpi.first.units.Units.Inches;
 /**
  * A builder class for creating and manipulating robot poses.
  */
-public class RobotPoseBuilder implements Supplier<Pose2d> {
+public class PoseBuilder implements Supplier<Pose2d> {
 
 	/**
 	 * The underlying pose representing the current 'state' of the pose being
@@ -32,7 +32,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 *
 	 * @param poseSupplier The initial pose to build upon.
 	 */
-	protected RobotPoseBuilder(Supplier<Pose2d> poseSupplier) {
+	protected PoseBuilder(Supplier<Pose2d> poseSupplier) {
 	
 		this.poseSupplier = poseSupplier;
 	
@@ -44,9 +44,9 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @param pose The pose to initialize the builder with.
 	 * @return A RobotPoseBuilder with the given pose.
 	 */
-	public static RobotPoseBuilder fromPose(Pose2d pose) {
+	public static PoseBuilder fromPose(Pose2d pose) {
 		
-		return new RobotPoseBuilder(() -> pose);
+		return new PoseBuilder(() -> pose);
 		
 	}
 
@@ -57,9 +57,9 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @return A RobotPoseBuilder representing a pose at the center of the
 	 * virtual field.
 	 */
-	public static RobotPoseBuilder fromCenterFieldPose() {
+	public static PoseBuilder fromCenterFieldPose() {
 		
-		return new RobotPoseBuilder(() -> new Pose2d(
+		return new PoseBuilder(() -> new Pose2d(
 			VirtualField.FIELD_LENGTH.div(2),
 			VirtualField.FIELD_WIDTH.div(2),
 			Rotation2d.kZero
@@ -75,9 +75,9 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @return A RobotPoseBuilder representing the pose of the AprilTag with
 	 * the given ID.
 	 */
-	public static RobotPoseBuilder getAprilTagPose(IntSupplier tagID) {
+	public static PoseBuilder getAprilTagPose(IntSupplier tagID) {
 
-		return new RobotPoseBuilder(
+		return new PoseBuilder(
 			() -> VirtualField.getAprilTagByID(tagID.getAsInt()).pose.toPose2d()
 		);
 
@@ -90,9 +90,9 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @return A RobotPoseBuilder representing a pose facing the AprilTag with
 	 * the given ID.
 	 */
-	public static RobotPoseBuilder getAprilTagFacingPose(IntSupplier tagID) {
+	public static PoseBuilder getAprilTagFacingPose(IntSupplier tagID) {
 
-		return RobotPoseBuilder.getAprilTagPose(tagID)
+		return PoseBuilder.getAprilTagPose(tagID)
 			.withRobotRelativeHeading(Rotation2d.k180deg)
 			.withRobotRelativeTranslation(new Translation2d(
 				RobotDimensions.ROBOT_LENGTH.div(2).times(-1),
@@ -111,12 +111,12 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * the robot should be centered on the tag.
 	 * @return A RobotPoseBuilder representing a pose for scoring on the reef.
 	 */
-	public static RobotPoseBuilder getReefScoringPose(
+	public static PoseBuilder getReefScoringPose(
 		IntSupplier tagID,
 		ReefAlignment alignment
 	) {
 
-		return RobotPoseBuilder.getAprilTagFacingPose(tagID)
+		return PoseBuilder.getAprilTagFacingPose(tagID)
 			.withRobotRelativeTranslation(alignment.equals(ReefAlignment.CENTER)
 				? Translation2d.kZero
 				: new Translation2d(
@@ -138,9 +138,9 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @return A RobotPoseBuilder representing a pose for loading coral from the
 	 * nearest coral loading station.
 	 */
-	public static RobotPoseBuilder getCoralStationLoadingPose(IntSupplier tagID) {
+	public static PoseBuilder getCoralStationLoadingPose(IntSupplier tagID) {
 		
-		return RobotPoseBuilder.getAprilTagFacingPose(tagID)
+		return PoseBuilder.getAprilTagFacingPose(tagID)
 			.withRobotRelativeHeading(Rotation2d.k180deg);
 		
 	}
@@ -154,11 +154,11 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @return A RobotPoseBuilder representing a pose for loading coral from the
 	 * nearest coral loading station.
 	 */
-	public static RobotPoseBuilder getCoralStationLoadingPose(
+	public static PoseBuilder getCoralStationLoadingPose(
 		RobotContainer robot
 	) {
 		
-		return RobotPoseBuilder.getCoralStationLoadingPose(
+		return PoseBuilder.getCoralStationLoadingPose(
 			() -> robot.odometry.getFieldThird().getCoralStationAprilTagID()
 		);
 
@@ -174,9 +174,9 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @return A RobotPoseBuilder representing a pose for calibrating the coral
 	 * station loading pose.
 	 */
-	public static RobotPoseBuilder getCoralStationCalibrationPose(IntSupplier tagID) {
+	public static PoseBuilder getCoralStationCalibrationPose(IntSupplier tagID) {
 		
-		return RobotPoseBuilder.getCoralStationLoadingPose(tagID)
+		return PoseBuilder.getCoralStationLoadingPose(tagID)
 			.withRobotRelativeTranslation(new Translation2d(
 				Inches.of(-24),
 				Inches.of(0)
@@ -193,11 +193,11 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * current pose.
 	 * @return A new RobotPoseBuilder with the applied translation.
 	 */
-	public RobotPoseBuilder withBlueOutRelativeTranslation(
+	public PoseBuilder withBlueOutRelativeTranslation(
 		Translation2d translation
 	) {
 		
-		return new RobotPoseBuilder(() -> {
+		return new PoseBuilder(() -> {
 
 			Pose2d pose = this.poseSupplier.get();
 			
@@ -221,7 +221,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * current pose.
 	 * @return A new RobotPoseBuilder with the applied translation.
 	 */
-	public RobotPoseBuilder withFieldRelativeTranslation(
+	public PoseBuilder withFieldRelativeTranslation(
 		DriverStation.Alliance alliance,
 		Translation2d translation
 	) {
@@ -244,7 +244,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * current pose.
 	 * @return A new RobotPoseBuilder with the applied translation.
 	 */
-	public RobotPoseBuilder withFieldRelativeTranslation(
+	public PoseBuilder withFieldRelativeTranslation(
 		Translation2d translation
 	) {
 		
@@ -264,11 +264,11 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * current pose.
 	 * @return A new RobotPoseBuilder with the applied translation.
 	 */
-	public RobotPoseBuilder withRobotRelativeTranslation(
+	public PoseBuilder withRobotRelativeTranslation(
 		Translation2d translation
 	) {
 		
-		return new RobotPoseBuilder(() -> this.poseSupplier.get().plus(new Transform2d(
+		return new PoseBuilder(() -> this.poseSupplier.get().plus(new Transform2d(
 			translation,
 			Rotation2d.kZero
 		)));
@@ -284,9 +284,9 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * pose.
 	 * @return A new RobotPoseBuilder with the applied heading.
 	 */
-	public RobotPoseBuilder withBlueOutHeading(Rotation2d heading) {
+	public PoseBuilder withBlueOutHeading(Rotation2d heading) {
 		
-		return new RobotPoseBuilder(() -> this.poseSupplier.get().plus(new Transform2d(
+		return new PoseBuilder(() -> this.poseSupplier.get().plus(new Transform2d(
 			new Translation2d(),
 			heading
 		)));
@@ -302,7 +302,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * pose.
 	 * @return A new RobotPoseBuilder with the applied heading.
 	 */
-	public RobotPoseBuilder withBlueOutHeading(Angle heading) {
+	public PoseBuilder withBlueOutHeading(Angle heading) {
 		
 		return this.withBlueOutHeading(new Rotation2d(heading));
 		
@@ -319,7 +319,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @param heading The 'field relative' heading to set for the current pose.
 	 * @return A new RobotPoseBuilder with the applied heading.
 	 */
-	public RobotPoseBuilder withFieldRelativeHeading(
+	public PoseBuilder withFieldRelativeHeading(
 		DriverStation.Alliance alliance,
 		Rotation2d heading
 	) {
@@ -341,7 +341,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @param heading The 'field relative' heading to set for the current pose.
 	 * @return A new RobotPoseBuilder with the applied heading.
 	 */
-	public RobotPoseBuilder withFieldRelativeHeading(
+	public PoseBuilder withFieldRelativeHeading(
 		DriverStation.Alliance alliance,
 		Angle heading
 	) {
@@ -359,7 +359,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @param heading The 'field relative' heading to set for the current pose.
 	 * @return A new RobotPoseBuilder with the applied heading.
 	 */
-	public RobotPoseBuilder withFieldRelativeHeading(Rotation2d heading) {
+	public PoseBuilder withFieldRelativeHeading(Rotation2d heading) {
 		
 		return this.withFieldRelativeHeading(
 			VirtualField.getAlliance(),
@@ -377,15 +377,15 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @param heading The 'field relative' heading to set for the current pose.
 	 * @return A new RobotPoseBuilder with the applied heading.
 	 */
-	public RobotPoseBuilder withFieldRelativeHeading(Angle heading) {
+	public PoseBuilder withFieldRelativeHeading(Angle heading) {
 		
 		return this.withFieldRelativeHeading(new Rotation2d(heading));
 		
 	}
 	
-	public RobotPoseBuilder withRobotRelativeHeading(Rotation2d heading) {
+	public PoseBuilder withRobotRelativeHeading(Rotation2d heading) {
 		
-		return new RobotPoseBuilder(() -> {
+		return new PoseBuilder(() -> {
 			
 			Pose2d pose = this.poseSupplier.get();
 
@@ -407,7 +407,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 * @param heading The 'robot relative' heading to set for the current pose.
 	 * @return A new RobotPoseBuilder with the applied heading.
 	 */
-	public RobotPoseBuilder withRobotRelativeHeading(Angle heading) {
+	public PoseBuilder withRobotRelativeHeading(Angle heading) {
 		
 		return this.withRobotRelativeHeading(new Rotation2d(heading));
 		
