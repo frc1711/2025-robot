@@ -92,10 +92,7 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 
 	public DoubleSupplierBuilder withDeadband(double deadband) {
 
-		return new DoubleSupplierBuilder(() -> DoubleUtilities.applyDeadband(
-				this.supplier.getAsDouble(),
-				deadband
-		));
+		return this.withDeadband(() -> deadband);
 
 	}
 
@@ -110,12 +107,7 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 	
 	public DoubleSupplierBuilder withScaledDeadband(double deadband) {
 		
-		return new DoubleSupplierBuilder(() ->
-			DoubleUtilities.applyScaledDeadband(
-				this.supplier.getAsDouble(),
-				deadband
-			)
-		);
+		return this.withScaledDeadband(() -> deadband);
 		
 	}
 
@@ -132,12 +124,7 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 
 	public DoubleSupplierBuilder withExponentialCurve(double power) {
 
-		return new DoubleSupplierBuilder(() ->
-				DoubleUtilities.applyExponentialCurve(
-						this.supplier.getAsDouble(),
-						power
-				)
-		);
+		return this.withExponentialCurve(() -> power);
 
 	}
 
@@ -154,11 +141,7 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 
 	public DoubleSupplierBuilder withClamp(double minimum, double maximum) {
 
-		return new DoubleSupplierBuilder(() -> DoubleUtilities.applyClamp(
-				this.supplier.getAsDouble(),
-				minimum,
-				maximum
-		));
+		return this.withClamp(() -> minimum, () -> maximum);
 
 	}
 
@@ -177,9 +160,7 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 	
 	public DoubleSupplierBuilder withScaling(double scaling) {
 		
-		return new DoubleSupplierBuilder(() ->
-			this.supplier.getAsDouble() * scaling
-		);
+		return this.withScaling(() -> scaling);
 		
 	}
 
