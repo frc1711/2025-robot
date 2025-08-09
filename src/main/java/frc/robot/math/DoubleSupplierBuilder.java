@@ -181,6 +181,39 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 		);
 		
 	}
+
+	public DoubleSupplierBuilder withMaximumSlewRate(DoubleSupplier limit) {
+
+		return new DoubleSupplierBuilder(new DoubleSupplier() {
+
+			double currentRateLimit = limit.getAsDouble();
+			SlewRateLimiter limiter = new SlewRateLimiter(currentRateLimit);
+			
+			@Override
+			public double getAsDouble() {
+
+				double newRateLimit = limit.getAsDouble();
+
+				if (newRateLimit != this.currentRateLimit) {
+					
+					this.currentRateLimit = newRateLimit;
+					this.limiter = new SlewRateLimiter(
+						newRateLimit,
+						-newRateLimit,
+						this.limiter.lastValue()
+					);
+					
+				}
+				
+				return limiter.calculate(
+					DoubleSupplierBuilder.this.getAsDouble()
+				);
+				
+			}
+			
+		});
+
+	}
 	
 	@Override
 	public double getAsDouble() {
