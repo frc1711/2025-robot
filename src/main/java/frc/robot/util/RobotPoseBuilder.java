@@ -78,7 +78,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	public static RobotPoseBuilder getAprilTagPose(IntSupplier tagID) {
 
 		return new RobotPoseBuilder(
-			() -> AprilTagHelper.getAprilTag(tagID.getAsInt()).pose.toPose2d()
+			() -> VirtualField.getAprilTagByID(tagID.getAsInt()).pose.toPose2d()
 		);
 
 	}
