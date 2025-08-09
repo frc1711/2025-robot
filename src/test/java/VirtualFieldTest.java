@@ -43,14 +43,4 @@ public class VirtualFieldTest {
 		
 	}
 	
-	@Test
-	public void doesGetNearestReefAprilTagWork() {
-		
-		System.out.println(List.of(1, 2, 3).contains(2));
-		System.out.println(List.of(1, 2, 3).contains(5));
-		
-		Translation2d robotPosition = new Translation2d(14, 14);
-		
-	}
-	
 }
