@@ -23,8 +23,6 @@ public class Elevator extends SubsystemBase {
 	
 	protected final MotionMagicVoltage request;
 	
-	protected final VoltageOut sysIdControl = new VoltageOut(0);
-	
 	public final Commands commands;
 	
 	public final Triggers triggers;
