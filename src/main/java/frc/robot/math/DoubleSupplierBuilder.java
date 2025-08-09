@@ -85,8 +85,8 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 		return DoubleSupplierBuilder.fromRightX(controller)
 			.withScaling(-1)
 			.withClamp(-1, 1)
-			.withScaledDeadband(DoublePreference.JOYSTICK_DEADBAND.get())
-			.withExponentialCurve(DoublePreference.LINEAR_INPUT_POWER_SMOOTHING.get());
+			.withScaledDeadband(DoublePreference.JOYSTICK_DEADBAND)
+			.withExponentialCurve(DoublePreference.LINEAR_INPUT_POWER_SMOOTHING);
 
 	}
 
