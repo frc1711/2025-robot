@@ -1,22 +1,35 @@
 package frc.robot.math;
 
+import edu.wpi.first.units.DistanceUnit;
+import edu.wpi.first.units.LinearAccelerationUnit;
+import edu.wpi.first.units.LinearVelocityUnit;
+import edu.wpi.first.units.TimeUnit;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Timer;
 
 import static edu.wpi.first.units.Units.*;
 
 public class LinearMotionProfiler {
     
-    protected final LinearVelocity maxVelocity;
+    private static final DistanceUnit INTRINSIC_DISTANCE_UNIT = Meters;
     
-    protected final LinearAcceleration acceleration;
+    private static final TimeUnit INTRINSIC_TIME_UNIT = Seconds;
     
-    protected final LinearAcceleration deceleration;
+    private static final LinearVelocityUnit INTRINSIC_VELOCITY_UNIT =
+        INTRINSIC_DISTANCE_UNIT.per(INTRINSIC_TIME_UNIT);
     
-    protected Time lastTime;
+    private static final LinearAccelerationUnit INTRINSIC_ACCELERATION_UNIT =
+        INTRINSIC_VELOCITY_UNIT.per(INTRINSIC_TIME_UNIT);
+    
+    protected final double maxVelocity;
+    
+    protected final double acceleration;
+    
+    protected final double deceleration;
+    
+    protected double lastTime;
     
     public LinearMotionProfiler(
         LinearVelocity maxVelocity,
@@ -33,14 +46,10 @@ public class LinearMotionProfiler {
         LinearAcceleration deceleration
     ) {
         
-        this.maxVelocity = maxVelocity;
-        this.acceleration = acceleration.times(
-            acceleration.lt(MetersPerSecondPerSecond.of(0)) ? -1 : 1
-        );
-        this.deceleration = deceleration.times(
-            deceleration.lt(MetersPerSecondPerSecond.of(0)) ? -1 : 1
-        );
-        this.lastTime = Seconds.of(Timer.getFPGATimestamp());
+        this.maxVelocity = Math.abs(maxVelocity.in(INTRINSIC_VELOCITY_UNIT));
+        this.acceleration = Math.abs(acceleration.in(INTRINSIC_ACCELERATION_UNIT));
+        this.deceleration = Math.abs(deceleration.in(INTRINSIC_ACCELERATION_UNIT));
+        this.lastTime = Timer.getFPGATimestamp();
         
     }
     
@@ -48,24 +57,24 @@ public class LinearMotionProfiler {
         Distance remainingDistance,
         LinearVelocity currentVelocity
     ) {
-
-        Time currentTime = Seconds.of(Timer.getFPGATimestamp());
-        Time deltaTime = currentTime.minus(this.lastTime);
+        
+        double currentTime = Timer.getFPGATimestamp();
+        double deltaTime = currentTime - this.lastTime;
+        double _remainingDistance = remainingDistance.in(INTRINSIC_DISTANCE_UNIT);
+        double _currentVelocity = currentVelocity.in(INTRINSIC_VELOCITY_UNIT);
+        
+        double maxVelocityAfterAcceleration = Math.min(
+            _currentVelocity + (this.acceleration * deltaTime),
+            this.maxVelocity
+        );
+        double maxVelocityWithoutOvershoot =
+            Math.sqrt(2 * this.deceleration * _remainingDistance);
+        
         this.lastTime = currentTime;
         
-        LinearVelocity acceleratingVelocity = MetersPerSecond.of(Math.min(
-            currentVelocity.plus(this.acceleration.times(deltaTime)).in(MetersPerSecond),
-            this.maxVelocity.in(MetersPerSecond)
-        ));
-
-        LinearVelocity deceleratingVelocity = MetersPerSecond.of(Math.min(
-            Math.sqrt(2 * this.deceleration.in(MetersPerSecondPerSecond) * remainingDistance.in(Meters)),
-            this.maxVelocity.in(MetersPerSecond)
-        ));
-        
         return MetersPerSecond.of(Math.min(
-            deceleratingVelocity.in(MetersPerSecond),
-            acceleratingVelocity.in(MetersPerSecond)
+            maxVelocityAfterAcceleration,
+            maxVelocityWithoutOvershoot
         ));
         
     }
