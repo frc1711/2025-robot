@@ -497,7 +497,7 @@ public class Swerve extends SubsystemBase {
 			LinearMotionProfiler trajectory = new LinearMotionProfiler(
 				/* Max Linear Velocity: */ InchesPerSecond.of(150),
 				/* Max Linear Acceleration: */ FeetPerSecondPerSecond.of(40), 
-				/* Max Linear Deceleration: */ FeetPerSecondPerSecond.of(8)
+				/* Max Linear Deceleration: */ FeetPerSecondPerSecond.of(6)
 			);
 			PIDController thetaController = new PIDController(8, 0, 0);
 			thetaController.enableContinuousInput(-180, 180);
