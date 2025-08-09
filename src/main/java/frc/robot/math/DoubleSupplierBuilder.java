@@ -80,25 +80,32 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 	 * joystick input (to use as the rotation input).
 	 * @return A DoubleSupplier for controlling the rotation of the drivetrain.
 	 */
-	public static DoubleSupplier getRotationDoubleSupplier(CommandXboxController controller) {
+	public static DoubleSupplierBuilder getRotationDoubleSupplier(CommandXboxController controller) {
 
 		return DoubleSupplierBuilder.fromRightX(controller)
-				.withScaling(-1)
-				.withClamp(-1, 1)
-				.withScaledDeadband(DoublePreference.JOYSTICK_DEADBAND.get())
-				.withExponentialCurve(DoublePreference.LINEAR_INPUT_POWER_SMOOTHING.get());
+			.withScaling(-1)
+			.withClamp(-1, 1)
+			.withScaledDeadband(DoublePreference.JOYSTICK_DEADBAND.get())
+			.withExponentialCurve(DoublePreference.LINEAR_INPUT_POWER_SMOOTHING.get());
 
 	}
-	
+
 	public DoubleSupplierBuilder withDeadband(double deadband) {
-		
-		return new DoubleSupplierBuilder(() ->
-			DoubleUtilities.applyDeadband(
+
+		return new DoubleSupplierBuilder(() -> DoubleUtilities.applyDeadband(
 				this.supplier.getAsDouble(),
 				deadband
-			)
-		);
-		
+		));
+
+	}
+
+	public DoubleSupplierBuilder withDeadband(DoubleSupplier deadband) {
+
+		return new DoubleSupplierBuilder(() -> DoubleUtilities.applyDeadband(
+			this.supplier.getAsDouble(),
+			deadband.getAsDouble()
+		));
+
 	}
 	
 	public DoubleSupplierBuilder withScaledDeadband(double deadband) {
@@ -111,28 +118,61 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 		);
 		
 	}
-	
+
+	public DoubleSupplierBuilder withScaledDeadband(DoubleSupplier deadband) {
+
+		return new DoubleSupplierBuilder(() ->
+			DoubleUtilities.applyScaledDeadband(
+				this.supplier.getAsDouble(),
+				deadband.getAsDouble()
+			)
+		);
+
+	}
+
 	public DoubleSupplierBuilder withExponentialCurve(double power) {
-		
+
+		return new DoubleSupplierBuilder(() ->
+				DoubleUtilities.applyExponentialCurve(
+						this.supplier.getAsDouble(),
+						power
+				)
+		);
+
+	}
+
+	public DoubleSupplierBuilder withExponentialCurve(DoubleSupplier power) {
+
 		return new DoubleSupplierBuilder(() ->
 			DoubleUtilities.applyExponentialCurve(
 				this.supplier.getAsDouble(),
-				power
+				power.getAsDouble()
 			)
 		);
-		
+
 	}
-	
+
 	public DoubleSupplierBuilder withClamp(double minimum, double maximum) {
-		
-		return new DoubleSupplierBuilder(() ->
-			DoubleUtilities.applyClamp(
+
+		return new DoubleSupplierBuilder(() -> DoubleUtilities.applyClamp(
 				this.supplier.getAsDouble(),
 				minimum,
 				maximum
-			)
-		);
-		
+		));
+
+	}
+
+	public DoubleSupplierBuilder withClamp(
+		DoubleSupplier minimum,
+		DoubleSupplier maximum
+	) {
+
+		return new DoubleSupplierBuilder(() -> DoubleUtilities.applyClamp(
+			this.supplier.getAsDouble(),
+			minimum.getAsDouble(),
+			maximum.getAsDouble()
+		));
+
 	}
 	
 	public DoubleSupplierBuilder withScaling(double scaling) {
@@ -142,23 +182,22 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 		);
 		
 	}
+
+	public DoubleSupplierBuilder withScaling(DoubleSupplier scaling) {
+
+		return new DoubleSupplierBuilder(() ->
+			this.supplier.getAsDouble() * scaling.getAsDouble()
+		);
+
+	}
 	
 	public DoubleSupplierBuilder withMaximumSlewRate(double limit) {
+
+		SlewRateLimiter limiter = new SlewRateLimiter(limit);
 		
-		return new DoubleSupplierBuilder(new DoubleSupplier() {
-			
-			SlewRateLimiter limiter = new SlewRateLimiter(limit);
-			
-			@Override
-			public double getAsDouble() {
-				
-				return this.limiter.calculate(
-					DoubleSupplierBuilder.this.getAsDouble()
-				);
-				
-			}
-			
-		});
+		return new DoubleSupplierBuilder(
+			() -> limiter.calculate(DoubleSupplierBuilder.this.getAsDouble())
+		);
 		
 	}
 	
