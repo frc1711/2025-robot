@@ -84,29 +84,6 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	}
 
 	/**
-	 * Returns a pose facing the AprilTag with the given ID, with an additional
-	 * offset from the robot's face to the tag.
-	 *
-	 * @param tagID The ID of the AprilTag to face.
-	 * @param extraOffset The additional offset from the robot's face to the tag.
-	 * @return A RobotPoseBuilder representing a pose facing the AprilTag with
-	 * the given ID and an additional offset.
-	 */
-	public static RobotPoseBuilder getAprilTagFacingPose(
-		IntSupplier tagID,
-		Distance extraOffset
-	) {
-
-		return RobotPoseBuilder.getAprilTagPose(tagID)
-			.withRobotRelativeHeading(Rotation2d.k180deg)
-			.withRobotRelativeTranslation(new Translation2d(
-				RobotDimensions.ROBOT_LENGTH.div(2).minus(extraOffset).times(-1),
-				Inches.of(0)
-			));
-
-	}
-
-	/**
 	 * Returns a pose facing the AprilTag with the given ID.
 	 *
 	 * @param tagID The ID of the AprilTag to face.
@@ -115,10 +92,12 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	 */
 	public static RobotPoseBuilder getAprilTagFacingPose(IntSupplier tagID) {
 
-		return RobotPoseBuilder.getAprilTagFacingPose(
-			tagID,
-			Inches.of(0)
-		);
+		return RobotPoseBuilder.getAprilTagPose(tagID)
+			.withRobotRelativeHeading(Rotation2d.k180deg)
+			.withRobotRelativeTranslation(new Translation2d(
+				RobotDimensions.ROBOT_LENGTH.div(2).times(-1),
+				Inches.of(0)
+			));
 
 	}
 
