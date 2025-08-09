@@ -75,10 +75,10 @@ public class Translation2dSupplierBuilder implements Supplier<Translation2d> {
 	public static Supplier<Translation2d> getTranslationPointSupplier(CommandXboxController controller) {
 
 		return Translation2dSupplierBuilder.fromLeftJoystick(controller)
-				.normalizeXboxJoystickToNWU()
-				.withClamp(-1, 1)
-				.withScaledDeadband(DoublePreference.JOYSTICK_DEADBAND.get())
-				.withExponentialCurve(DoublePreference.LINEAR_INPUT_POWER_SMOOTHING.get());
+			.normalizeXboxJoystickToNWU()
+			.withClamp(-1, 1)
+			.withScaledDeadband(DoublePreference.JOYSTICK_DEADBAND.get())
+			.withExponentialCurve(DoublePreference.LINEAR_INPUT_POWER_SMOOTHING.get());
 
 	}
 	

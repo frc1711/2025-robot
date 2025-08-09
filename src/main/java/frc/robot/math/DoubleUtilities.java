@@ -72,8 +72,8 @@ public class DoubleUtilities {
     public static double applyScaledDeadband(double input, double deadband) {
 
         return Math.abs(input) < deadband ? 0 : Math.copySign(
-                (Math.abs(input) - deadband) / (1 - deadband),
-                input
+            (Math.abs(input) - deadband) / (1 - deadband),
+            input
         );
 
     }
@@ -89,9 +89,9 @@ public class DoubleUtilities {
      * is outside that range.
      */
     public static double applyClamp(
-            double input,
-            double minimum,
-            double maximum
+        double input,
+        double minimum,
+        double maximum
     ) {
 
         return input < minimum ? minimum : Math.min(input, maximum);
