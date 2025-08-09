@@ -1,5 +1,6 @@
 package frc.robot.math;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
@@ -185,7 +186,7 @@ public class Translation2dSupplierBuilder implements Supplier<Translation2d> {
 			
 			if (original.getNorm() <= 0) return Translation2d.kZero;
 			else return new Translation2d(
-				DoubleUtilities.applyClamp(original.getNorm(), minimum, maximum),
+				MathUtil.clamp(original.getNorm(), minimum, maximum),
 				original.getAngle()
 			);
 			

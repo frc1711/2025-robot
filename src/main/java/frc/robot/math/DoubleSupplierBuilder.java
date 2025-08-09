@@ -1,5 +1,6 @@
 package frc.robot.math;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -150,7 +151,7 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 		DoubleSupplier maximum
 	) {
 
-		return new DoubleSupplierBuilder(() -> DoubleUtilities.applyClamp(
+		return new DoubleSupplierBuilder(() -> MathUtil.clamp(
 			this.supplier.getAsDouble(),
 			minimum.getAsDouble(),
 			maximum.getAsDouble()

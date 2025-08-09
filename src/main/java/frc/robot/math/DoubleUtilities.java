@@ -79,26 +79,6 @@ public class DoubleUtilities {
     }
 
     /**
-     * Clamps the input value to be within the specified minimum and maximum.
-     *
-     * @param input The input value to clamp.
-     * @param minimum The minimum value to which the input can be clamped.
-     * @param maximum The maximum value to which the input can be clamped.
-     * @return The clamped value, which will be equal to the input if it is
-     * within the range [minimum, maximum], or the minimum or maximum if it
-     * is outside that range.
-     */
-    public static double applyClamp(
-        double input,
-        double minimum,
-        double maximum
-    ) {
-
-        return input < minimum ? minimum : Math.min(input, maximum);
-
-    }
-
-    /**
      * Returns the new value so long as its delta from the old value does not
      * exceed the specified maximum permissible amount. If this delta is greater
      * than what is permissible, the returned value will instead be the old
