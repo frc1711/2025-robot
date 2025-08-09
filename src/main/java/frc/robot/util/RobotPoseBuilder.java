@@ -130,29 +130,6 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	}
 
 	/**
-	 * Returns a pose for 'calibrating' the vision camera on the reef in front
-	 * of the given tag and with the specified alignment.
-	 *
-	 * @param tagID The ID of the AprilTag to face.
-	 * @param alignment The reef branch to align the mailbox with, or CENTER if
-	 * the robot should be centered on the tag.
-	 * @return A RobotPoseBuilder representing a pose for calibrating the reef
-	 * vision camera.
-	 */
-	public static RobotPoseBuilder getReefCalibrationPose(
-		IntSupplier tagID,
-		ReefAlignment alignment
-	) {
-		
-		return RobotPoseBuilder.getReefScoringPose(tagID, alignment)
-			.withRobotRelativeTranslation(new Translation2d(
-				Inches.of(-30),
-				Inches.of(0)
-			));
-		
-	}
-
-	/**
 	 * Returns a RobotPoseBuilder representing a pose for loading coral from the
 	 * nearest coral loading station.
 	 *
