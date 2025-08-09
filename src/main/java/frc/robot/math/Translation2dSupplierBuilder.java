@@ -48,7 +48,8 @@ public class Translation2dSupplierBuilder implements Supplier<Translation2d> {
 	) {
 		
 		return new Translation2dSupplierBuilder(
-			() -> new Translation2d(controller.getLeftX(), controller.getLeftY())
+			controller::getLeftX,
+			controller::getLeftY
 		);
 		
 	}
@@ -58,7 +59,8 @@ public class Translation2dSupplierBuilder implements Supplier<Translation2d> {
 	) {
 		
 		return new Translation2dSupplierBuilder(
-			() -> new Translation2d(controller.getLeftX(), controller.getLeftY())
+			controller::getLeftX,
+			controller::getLeftY
 		);
 		
 	}
@@ -209,17 +211,18 @@ public class Translation2dSupplierBuilder implements Supplier<Translation2d> {
 	
 	public Translation2dSupplierBuilder withMaximumSlewRate(double limit) {
 
-		return new Translation2dSupplierBuilder(new Supplier<>() {
-			SlewRateLimiter xLimiter = new SlewRateLimiter(limit);
-			SlewRateLimiter yLimiter = new SlewRateLimiter(limit);
-			@Override
-			public Translation2d get() {
-				Translation2d original = Translation2dSupplierBuilder.this.get();
-				return new Translation2d(
-					Inches.of(this.xLimiter.calculate(original.getMeasureX().in(Inches))),
-					Inches.of(this.yLimiter.calculate(original.getMeasureY().in(Inches)))
-				);
-			}
+		SlewRateLimiter xLimiter = new SlewRateLimiter(limit);
+		SlewRateLimiter yLimiter = new SlewRateLimiter(limit);
+		
+		return new Translation2dSupplierBuilder(() -> {
+
+			Translation2d original = Translation2dSupplierBuilder.this.get();
+			
+			return new Translation2d(
+				Inches.of(xLimiter.calculate(original.getMeasureX().in(Inches))),
+				Inches.of(yLimiter.calculate(original.getMeasureY().in(Inches)))
+			);
+			
 		});
 		
 	}
