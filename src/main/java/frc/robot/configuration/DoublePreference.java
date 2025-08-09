@@ -5,12 +5,13 @@ import edu.wpi.first.wpilibj.Preferences;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
 
 /**
  * A collection of floating point preferences that can be set and retrieved
  * from the RoboRIO across power cycles.
  */
-public enum DoublePreference {
+public enum DoublePreference implements DoubleSupplier {
     
     FRONT_LEFT_SWERVE_MODULE_ENCODER_OFFSET_DEGREES("Front Left Swerve Module Encoder Offset", 0),
     
@@ -116,6 +117,13 @@ public enum DoublePreference {
         
         consumer.accept(this.get());
         this.onChange(consumer);
+        
+    }
+
+    @Override
+    public double getAsDouble() {
+        
+        return this.get();
         
     }
     
