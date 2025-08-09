@@ -196,7 +196,7 @@ public class DoubleSupplierBuilder implements DoubleSupplier {
 		SlewRateLimiter limiter = new SlewRateLimiter(limit);
 		
 		return new DoubleSupplierBuilder(
-			() -> limiter.calculate(DoubleSupplierBuilder.this.getAsDouble())
+			() -> limiter.calculate(this.getAsDouble())
 		);
 		
 	}
