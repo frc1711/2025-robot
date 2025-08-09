@@ -1,6 +1,7 @@
 package frc.robot.configuration;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import frc.robot.util.VirtualField;
 
 public enum FieldThird {
 	
@@ -50,9 +51,7 @@ public enum FieldThird {
 	
 	public int getReefFrontAprilTagID() {
 		
-		return this.getReefFrontAprilTagID(
-			DriverStation.getAlliance().orElse(DriverStation.Alliance.Red)
-		);
+		return this.getReefFrontAprilTagID(VirtualField.getAlliance());
 		
 	}
 	
@@ -66,9 +65,7 @@ public enum FieldThird {
 	
 	public int getReefRearAprilTagID() {
 		
-		return this.getReefRearAprilTagID(
-			DriverStation.getAlliance().orElse(DriverStation.Alliance.Red)
-		);
+		return this.getReefRearAprilTagID(VirtualField.getAlliance());
 		
 	}
 	
@@ -82,9 +79,7 @@ public enum FieldThird {
 	
 	public int getCoralStationAprilTagID() {
 		
-		return this.getCoralStationAprilTagID(
-			DriverStation.getAlliance().orElse(DriverStation.Alliance.Red)
-		);
+		return this.getCoralStationAprilTagID(VirtualField.getAlliance());
 		
 	}
 	

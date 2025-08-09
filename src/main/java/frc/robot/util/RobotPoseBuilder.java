@@ -293,7 +293,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	) {
 		
 		return this.withFieldRelativeTranslation(
-			DriverStation.getAlliance().orElse(DriverStation.Alliance.Red),
+			VirtualField.getAlliance(),
 			translation
 		);
 		
@@ -406,7 +406,7 @@ public class RobotPoseBuilder implements Supplier<Pose2d> {
 	public RobotPoseBuilder withFieldRelativeHeading(Rotation2d heading) {
 		
 		return this.withFieldRelativeHeading(
-			DriverStation.getAlliance().orElse(DriverStation.Alliance.Red),
+			VirtualField.getAlliance(),
 			heading
 		);
 		

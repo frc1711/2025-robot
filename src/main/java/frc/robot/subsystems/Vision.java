@@ -6,8 +6,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.*;
-import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.devicewrappers.LimelightHelpers;
+import frc.robot.util.VirtualField;
 
 import java.util.Arrays;
 import java.util.List;
@@ -75,11 +75,8 @@ public class Vision {
 		
 		if (!shouldUpdateVision) return List.of();
 		
-		boolean isRedAlliance = DriverStation.Alliance.Red ==
-			DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
-		
 		double limelightYaw = this.headingSupplier.get().in(Degrees) +
-			(isRedAlliance ? 180 : 0);
+			(VirtualField.isRedAlliance() ? 180 : 0);
 		
 		int[] aprilTagFilter = this.currentAprilTagFilter != null
 			? this.currentAprilTagFilter

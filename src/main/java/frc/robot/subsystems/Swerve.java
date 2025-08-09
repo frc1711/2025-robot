@@ -548,12 +548,10 @@ public class Swerve extends SubsystemBase {
 					Translation2d deltaTranslation = this.desiredPose.getTranslation()
 						.minus(this.currentPose.getTranslation());
 					
-					boolean needsInverting = DriverStation.Alliance.Red ==
-							DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue);
 					Translation2d chassisSpeedTranslation = new Translation2d(
 						velocity.in(MetersPerSecond),
 						deltaTranslation.getAngle()
-					).times(needsInverting ? -1 : 1);
+					).times(VirtualField.isRedAlliance() ? -1 : 1);
 					
 					Swerve.this.applyChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(
 						MetersPerSecond.of(chassisSpeedTranslation.getX()),

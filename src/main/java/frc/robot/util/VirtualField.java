@@ -64,9 +64,7 @@ public class VirtualField {
 	
 	public static Stream<AprilTag> getReefAprilTags() {
 		
-		return VirtualField.getReefAprilTags(
-			DriverStation.getAlliance().orElse(DriverStation.Alliance.Red)
-		);
+		return VirtualField.getReefAprilTags(VirtualField.getAlliance());
 		
 	}
 	
@@ -81,9 +79,7 @@ public class VirtualField {
 	
 	public static Stream<AprilTag> getCoralStationAprilTags() {
 		
-		return VirtualField.getCoralStationAprilTags(
-			DriverStation.getAlliance().orElse(DriverStation.Alliance.Red)
-		);
+		return VirtualField.getCoralStationAprilTags(VirtualField.getAlliance());
 		
 	}
 	
@@ -104,9 +100,7 @@ public class VirtualField {
 	
 	public static Translation2d getReefCenterPoint() {
 		
-		return VirtualField.getReefCenterPoint(
-			DriverStation.getAlliance().orElse(DriverStation.Alliance.Red)
-		);
+		return VirtualField.getReefCenterPoint(VirtualField.getAlliance());
 		
 	}
 	
@@ -152,7 +146,7 @@ public class VirtualField {
 	public static AprilTag getNearestReefAprilTag(Translation2d position) {
 		
 		return VirtualField.getNearestReefAprilTag(
-			DriverStation.getAlliance().orElse(DriverStation.Alliance.Red),
+			VirtualField.getAlliance(),
 			position
 		);
 		
@@ -187,7 +181,7 @@ public class VirtualField {
 	public static FieldThird getFieldThirdForPosition(Translation2d position) {
 		
 		return VirtualField.getFieldThirdForPosition(
-			DriverStation.getAlliance().orElse(DriverStation.Alliance.Red),
+			VirtualField.getAlliance(),
 			position
 		);
 		
