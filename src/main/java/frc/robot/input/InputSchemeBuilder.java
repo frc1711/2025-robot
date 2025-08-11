@@ -1,7 +1,8 @@
 package frc.robot.input;
 
 import com.revrobotics.spark.config.SparkBaseConfig;
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -10,7 +11,10 @@ import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.ReefLevel;
 import frc.robot.configuration.ReefAlignmentMode;
 import frc.robot.configuration.RobotDimensions;
-import frc.robot.util.*;
+import frc.robot.util.ChassisSpeedsSupplierBuilder;
+import frc.robot.util.ElevatorPosition;
+import frc.robot.util.PoseBuilder;
+import frc.robot.util.PoseBuilder.CoordinateSystem;
 
 import java.util.Map;
 
@@ -107,32 +111,24 @@ public class InputSchemeBuilder {
 	
 	public InputSchemeBuilder useTriggersToLoad(CommandXboxController controller) {
 		
+		PoseBuilder coralStation = PoseBuilder.getCoralStationLoadingPose(robot);
+		Distance sidestep = RobotDimensions.ROBOT_WIDTH.div(2);
+		Angle left = Degrees.of(90);
+		Angle right = left.times(-1);
+		
 		controller.leftTrigger().whileTrue(
-			this.robot.swerve.commands.goToPosition(
-				PoseBuilder.getCoralStationLoadingPose(robot)
-					.withRobotRelativeTranslation(new Translation2d(
-						Inches.of(0),
-						RobotDimensions.ROBOT_WIDTH.div(2)
-					)),
-				Inches.of(0.5),
-				Degrees.of(2),
-				null
-			).andThen(this.robot.swerve.commands.drive(
+			coralStation
+				.withTranslation(CoordinateSystem.ROBOT_RELATIVE, sidestep, left)
+				.go(robot)
+			.andThen(this.robot.swerve.commands.drive(
 				ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(15))
 			))
 		);
 		
 		controller.rightTrigger().whileTrue(
-			this.robot.swerve.commands.goToPosition(
-				PoseBuilder.getCoralStationLoadingPose(robot)
-					.withRobotRelativeTranslation(new Translation2d(
-						Inches.of(0),
-						RobotDimensions.ROBOT_WIDTH.div(-2)
-					)),
-				Inches.of(0.5),
-				Degrees.of(2),
-				null
-			).andThen(this.robot.swerve.commands.drive(
+			coralStation.withTranslation(CoordinateSystem.ROBOT_RELATIVE, sidestep, right)
+				.go(robot)
+			.andThen(this.robot.swerve.commands.drive(
 				ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(15))
 			))
 		);

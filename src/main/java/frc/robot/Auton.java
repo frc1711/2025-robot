@@ -37,12 +37,7 @@ public enum Auton {
 			FieldThird.RIGHT, robot.complexCommands.autoScoreOnReef(() -> robot.odometry.getFieldThird().getReefFrontAprilTagID(), ReefLevel.L4, ReefAlignment.RIGHT)
 		), robot.odometry::getFieldThird);
 
-		Command goToCoralStation = robot.swerve.commands.goToPosition(
-			PoseBuilder.getCoralStationLoadingPose(robot),
-			Inches.of(0.25),
-			Degrees.of(1),
-			null
-		);
+		Command goToCoralStation = PoseBuilder.getCoralStationLoadingPose(robot).go(robot);
 
 		Command driveAgainstCoralStation = robot.swerve.commands.drive(
 			ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(10))
@@ -59,15 +54,10 @@ public enum Auton {
 					.until(robot.intake.triggers.isCoralInLowerIntake().negate())
 			);
 
-		Command goBackToCoralStation = robot.swerve.commands.goToPosition(
-			PoseBuilder.getCoralStationLoadingPose(robot),
-			Inches.of(0.25),
-			Degrees.of(1),
-			null
-		);
+		Command goBackToCoralStation = PoseBuilder.getCoralStationLoadingPose(robot).go(robot);
 
 		Command driveAgainstCoralStationAgain = robot.swerve.commands.drive(
-				ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(10))
+			ChassisSpeedsSupplierBuilder.backwards(InchesPerSecond.of(10))
 		);
 
 		Command coralLoadingDeadlineAgain = robot.intake.commands.waitUntilCoralIsInUpperIntake()

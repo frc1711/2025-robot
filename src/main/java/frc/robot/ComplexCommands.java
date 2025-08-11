@@ -1,20 +1,20 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.ReefLevel;
 import frc.robot.configuration.StatusLightsPattern;
 import frc.robot.util.*;
 
 import java.util.function.IntSupplier;
-import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.*;
+import static frc.robot.util.PoseBuilder.CoordinateSystem.*;
+import static frc.robot.configuration.Direction.*;
 
 public class ComplexCommands {
 	
@@ -118,15 +118,10 @@ public class ComplexCommands {
 	
 	public Command autoScoreOnReef(IntSupplier reefTagID, ReefLevel level, ReefAlignment branch) {
 		
-		Distance extra = Inches.of(level.equals(ReefLevel.L4) ? -2 : 0);
-		Supplier<Pose2d> poseSupplier = PoseBuilder.getReefScoringPose(reefTagID, branch)
-			.withRobotRelativeTranslation(new Translation2d(extra, Inches.of(0)));
-		Command goToScoringPosition = this.robot.swerve.commands.goToPosition(
-			poseSupplier,
-			Inches.of(0.25),
-			Degrees.of(1),
-			() -> new int[] { reefTagID.getAsInt() }
-		);
+		Distance extra = Inches.of(level.equals(ReefLevel.L4) ? 2 : 0);
+		PoseBuilder scoringPose = PoseBuilder.getReefScoringPose(reefTagID, branch)
+			.withTranslation(ROBOT_RELATIVE, extra, BACKWARDS);
+		Command goToScoringPosition = scoringPose.go(robot);
 		Command scoreCoral = this.robot.mailbox.commands.feed(level).withTimeout(0.6);
 		Command positionCoral = robot.complexCommands.autoAcceptMail()
 			.alongWith(robot.complexCommands.autofeedMailbox())
