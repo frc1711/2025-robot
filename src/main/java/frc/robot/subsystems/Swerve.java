@@ -486,11 +486,11 @@ public class Swerve extends SubsystemBase {
 		
 		public Command goToPosition(
 			Supplier<Pose2d> poseSupplier,
-			Distance distanceTolerance,
-			Angle angularTolerance,
 			Supplier<int[]> aprilTagFilter
 		) {
 			
+			Distance DISTANCE_TOLERANCE = Inches.of(0.25);
+			Angle ANGULAR_TOLERANCE = Degrees.of(1);
 			AngularVelocity MAX_ANGULAR_VELOCITY = DegreesPerSecond.of(90);
 			
 			LinearMotionProfiler trajectory = new LinearMotionProfiler(
@@ -576,10 +576,10 @@ public class Swerve extends SubsystemBase {
 					}
 
 					return (
-						linearDistance.lte(distanceTolerance) &&
+						linearDistance.lte(DISTANCE_TOLERANCE) &&
 						currentPose.getRotation().getMeasure().isNear(
 							desiredPose.getRotation().getMeasure(),
-							angularTolerance
+							ANGULAR_TOLERANCE
 						)
 					);
 
