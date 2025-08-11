@@ -4,6 +4,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.DistanceUnit;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 
@@ -66,6 +67,20 @@ public class Point extends Translation2d {
     public Point(Distance norm, Rotation2d rotation) {
         
         super(norm.in(Point.INTRINSIC_MEASUREMENT_UNIT), rotation);
+        
+    }
+
+    /**
+     * Initializes a new Point instance with the provided norm and angle.
+     * 
+     * @param norm The norm of the resultant Point.
+     * @param angle The angle of the resultant Point relative to the
+     * positive x-axis (i.e. 0 degrees represents an angle that points 'to the
+     * right' of a standard coordinate graph).
+     */
+    public Point(Distance norm, Angle angle) {
+        
+        this(norm, new Rotation2d(angle));
         
     }
 
