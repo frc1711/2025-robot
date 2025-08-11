@@ -401,6 +401,12 @@ public class PoseBuilder implements Supplier<Pose2d> {
 		
 	}
 	
+	public Command go(RobotContainer robot) {
+		
+		return robot.swerve.commands.goToPosition(this, null);
+		
+	}
+	
 	@Override
 	public Pose2d get() {
 
