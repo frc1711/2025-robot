@@ -5,15 +5,21 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotContainer;
 import frc.robot.configuration.ReefAlignment;
 import frc.robot.configuration.RobotDimensions;
+import frc.robot.math.Point;
 
+import java.util.function.Function;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 import static edu.wpi.first.units.Units.Inches;
+import static frc.robot.configuration.Direction.*;
+import static frc.robot.util.PoseBuilder.CoordinateSystem.*;
 
 /**
  * A builder class for creating and manipulating robot poses.
@@ -93,10 +99,8 @@ public class PoseBuilder implements Supplier<Pose2d> {
 
 		return PoseBuilder.getAprilTagPose(tagID)
 			.withRobotRelativeHeading(Rotation2d.k180deg)
-			.withRobotRelativeTranslation(new Translation2d(
-				RobotDimensions.ROBOT_LENGTH.div(2).times(-1),
-				Inches.of(0)
-			));
+//			.withRotation(Rotation2d.k180deg)
+			.withTranslation(ROBOT_RELATIVE, RobotDimensions.ROBOT_LENGTH.div(2), BACKWARDS);
 
 	}
 
@@ -114,17 +118,14 @@ public class PoseBuilder implements Supplier<Pose2d> {
 		IntSupplier tagID,
 		ReefAlignment alignment
 	) {
-
+		
+		Angle direction = alignment.equals(ReefAlignment.LEFT) ? LEFT : RIGHT;
+		Distance sidestep = RobotDimensions.REEF_BRANCH_SEPARATION_DISTANCE.div(2)
+			.minus(RobotDimensions.MAILBOX_LR_OFFSET_TO_ROBOT_CENTER)
+			.times(alignment.equals(ReefAlignment.CENTER) ? 0 : 1);
+		
 		return PoseBuilder.getAprilTagFacingPose(tagID)
-			.withRobotRelativeTranslation(alignment.equals(ReefAlignment.CENTER)
-				? Translation2d.kZero
-				: new Translation2d(
-					Inches.of(0),
-					RobotDimensions.REEF_BRANCH_SEPARATION_DISTANCE.div(2)
-						.times(alignment.equals(ReefAlignment.LEFT) ? 1 : -1)
-						.minus(RobotDimensions.MAILBOX_LR_OFFSET_TO_ROBOT_CENTER)
-				)
-			);
+			.withTranslation(ROBOT_RELATIVE, sidestep, direction);
 		
 	}
 
@@ -182,75 +183,63 @@ public class PoseBuilder implements Supplier<Pose2d> {
 			));
 		
 	}
-
-	/**
-	 * Returns a modified version of the current RobotPoseBuilder pose, having
-	 * applied the given transformation to it under a 'blue out' UCS (where
-	 * positive X faces outwards from the blue alliance wall).
-	 *
-	 * @param translation The 'blue out' relative translation to apply to the
-	 * current pose.
-	 * @return A new RobotPoseBuilder with the applied translation.
-	 */
-	public PoseBuilder withBlueOutRelativeTranslation(
-		Translation2d translation
-	) {
+	
+	public PoseBuilder with(Function<Pose2d, Pose2d> function) {
 		
-		return new PoseBuilder(() -> {
-
-			Pose2d pose = this.poseSupplier.get();
-			
-			return pose.plus(new Transform2d(
-				translation.rotateBy(pose.getRotation().times(-1)),
-				Rotation2d.kZero
-			));
-			
-		});
+		return new PoseBuilder(() -> function.apply(this.get()));
 		
 	}
-
-	/**
-	 * Returns a modified version of the current RobotPoseBuilder pose, having
-	 * applied the given transformation to it under a 'field relative' UCS
-	 * (where positive X faces outwards from the specified alliance's wall).
-	 *
-	 * @param alliance The alliance to use for determining the field-relative
-	 * coordinate system.
-	 * @param translation The 'field relative' translation to apply to the
-	 * current pose.
-	 * @return A new RobotPoseBuilder with the applied translation.
-	 */
-	public PoseBuilder withFieldRelativeTranslation(
-		DriverStation.Alliance alliance,
+	
+	public PoseBuilder withTranslation(
+		CoordinateSystem coordinateSystem,
 		Translation2d translation
 	) {
 		
-		boolean shouldInvert = alliance == DriverStation.Alliance.Red;
+		boolean isRedOrField = coordinateSystem == RED_OUT ||
+			coordinateSystem == CoordinateSystem.FIELD_RELATIVE;
+		Translation2d adjustedTranslation = isRedOrField
+			? translation.times(VirtualField.isRedAlliance() ? -1 : 1)
+			: translation;
+		CoordinateSystem adjustedCoordinateSystem = isRedOrField
+			? CoordinateSystem.BLUE_OUT
+			: coordinateSystem;
 		
-		return this.withBlueOutRelativeTranslation(
-			translation.times(shouldInvert ? -1 : 1)
+		return this.with(pose -> pose.plus(new Transform2d(
+			adjustedTranslation.rotateBy(
+				adjustedCoordinateSystem == CoordinateSystem.BLUE_OUT
+					? pose.getRotation().times(-1)
+					: Rotation2d.kZero
+			),
+			Rotation2d.kZero
+		)));
+		
+	}
+	
+	public PoseBuilder withTranslation(
+		CoordinateSystem coordinateSystem,
+		Distance distance,
+		Angle angle
+	) {
+		
+		return this.withTranslation(
+			coordinateSystem,
+			new Point(distance, angle)
 		);
 		
 	}
-
-	/**
-	 * Returns a modified version of the current RobotPoseBuilder pose, having
-	 * applied the given transformation to it under a 'field relative' UCS
-	 * (where positive X faces outwards from the alliance wall, as informed by
-	 * the FMS).
-	 *
-	 * @param translation The 'field relative' translation to apply to the
-	 * current pose.
-	 * @return A new RobotPoseBuilder with the applied translation.
-	 */
-	public PoseBuilder withFieldRelativeTranslation(
-		Translation2d translation
-	) {
+	
+	public PoseBuilder withRotation(Rotation2d rotation) {
 		
-		return this.withFieldRelativeTranslation(
-			VirtualField.getAlliance(),
-			translation
-		);
+		return this.with(pose -> new Pose2d(
+			pose.getTranslation(),
+			pose.getRotation().plus(rotation)
+		));
+		
+	}
+	
+	public PoseBuilder withRotation(Angle angle) {
+		
+		return this.withRotation(new Rotation2d(angle));
 		
 	}
 
@@ -418,4 +407,17 @@ public class PoseBuilder implements Supplier<Pose2d> {
 		return this.poseSupplier.get();
 
 	}
+	
+	public enum CoordinateSystem {
+
+		BLUE_OUT,
+
+		RED_OUT,
+
+		FIELD_RELATIVE,
+
+		ROBOT_RELATIVE
+		
+	}
+	
 }
